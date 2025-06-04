@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI:string = process.env.DATABASE_URL!;
+const MONGODB_URI: string = "mongodb+srv://admin:admin@cluster0.fb6fq.mongodb.net/Donate-Me?retryWrites=true&w=majority";
 const MONGODB_DB_NAME = "Donate-Me";
 
 export const connectToDatabase = async () => {
