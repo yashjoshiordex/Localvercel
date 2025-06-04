@@ -1,9 +1,9 @@
 import winston from "winston";
 import { format } from 'winston';
-import'winston-daily-rotate-file';
+import 'winston-daily-rotate-file';
 
 var transport = new (winston.transports.DailyRotateFile)({
-    filename: 'logs/DonateMe-%DATE%.log',
+    filename: '/tmp/logs/DonateMe-%DATE%.log',
     datePattern: 'YYYY-MM-DD',
     zippedArchive: true,
     maxSize: '20m',
