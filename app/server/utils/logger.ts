@@ -1,31 +1,40 @@
-import winston from "winston";
+import winston from 'winston';
 import { format } from 'winston';
 import 'winston-daily-rotate-file';
 
-var transport = new (winston.transports.DailyRotateFile)({
-    filename: '/tmp/logs/DonateMe-%DATE%.log',
-    datePattern: 'YYYY-MM-DD',
-    zippedArchive: true,
-    maxSize: '20m',
-    maxFiles: '14d'
-});
+const isProdOnVercel = process.env.VERCEL === '1';
+const isLocal = !isProdOnVercel;
+
+const logTransports: winston.transport[] = [];
 
 const customFormat = format.printf(({ timestamp, level, message }) => {
-    return `${timestamp} [${level}]: ${message}`;
+    return `${timestamp} [${level.toUpperCase()}]: ${message}`;
 });
 
+// Log to file only in local/dev/CI
+if (isLocal) {
+    const fileRotateTransport = new winston.transports.DailyRotateFile({
+        filename: 'logs/DonateMe-%DATE%.log',
+        datePattern: 'YYYY-MM-DD',
+        zippedArchive: true,
+        maxSize: '20m',
+        maxFiles: '14d',
+    });
+    logTransports.push(fileRotateTransport);
+}
+
+// Always log to console (stdout)
+logTransports.push(new winston.transports.Console());
+
 export const logger = winston.createLogger({
-    format: format.combine(
-        format.timestamp(),
-        customFormat
-    ),
-    transports: [
-        transport
-    ],
+    level: 'info',
+    format: format.combine(format.timestamp(), customFormat),
+    transports: logTransports,
     exceptionHandlers: [
         new winston.transports.File({
-            filename: 'logs/exceptions.log',
-            level: 'error'
-        })
-    ]
+            // Use /tmp for exception logs on Vercel
+            filename: isProdOnVercel ? '/tmp/exceptions.log' : 'logs/exceptions.log',
+            level: 'error',
+        }),
+    ],
 });
