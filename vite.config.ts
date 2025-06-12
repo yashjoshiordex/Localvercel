@@ -39,7 +39,7 @@ if (host === "localhost") {
 
 export default defineConfig({
   server: {
-    allowedHosts: [host,"5b15-43-241-147-189.ngrok-free.app"],
+    allowedHosts: [host, "https://localvercel.vercel.app/"],
     cors: {
       preflightContinue: true,
     },
