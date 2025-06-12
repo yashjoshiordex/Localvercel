@@ -32,7 +32,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       /* 2️⃣  Parse & validate body ------------------------------------------------ */
       const body = await request.json();
       const parsed = validateProductInput(body);
-      console.log("Parsed product input:", body);
+      console.log("Parsed product input:", body.goalAmount);
 
       if (!parsed.success) {
         logger.error("Product input validation failed", { error: parsed.error });
@@ -42,7 +42,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         });
       }
 
-      const { title, description, sku } = parsed.data;
+      const { title, description, sku,goalAmount } = parsed.data;
       const shopDomain: string = session.shop;
 
       /* 3️⃣  Create product in Shopify ------------------------------------------- */
@@ -96,7 +96,8 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           sku: sku ?? null,
           description,
           price: body.price ?? 10,
-          shop:shopDomain,
+          goalAmount: goalAmount,
+          shop: shopDomain,
           minimumDonationAmount: body.minDonation ?? null,
         });
         logger.info(`Product saved to database : ${JSON.stringify(savedProduct)}`, { shop: shopDomain });

@@ -17,7 +17,6 @@ const Dashboard = () => {
     const [currentPlan, setCurrentPlanPlans] = useState<Plan>();
     const [loader, setLoader] = useState<boolean>(false);
 
-    console.log('first')
   useEffect(() => {
       setLoader(true);
       const fetchPlans = async () => {

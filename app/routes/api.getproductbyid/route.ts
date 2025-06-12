@@ -3,9 +3,9 @@ import { authenticate } from "app/shopify.server";
 
 export const loader = async ({ request }: any) => {
   const { admin, session } = await authenticate.admin(request);
-  const shop:string = session?.shop;
+  const shop: string = session?.shop;
   const url = new URL(request.url);
-  const shopifyId:string|null = url.searchParams.get("id");
+  const shopifyId: string | null = url.searchParams.get("id");
 
   if (!shopifyId) {
     return new Response(
@@ -16,7 +16,7 @@ export const loader = async ({ request }: any) => {
 
   try {
     // Find the product in your MongoDB collection using the passed `id` and `shop`
-    const dbProduct = await Product.findOne({ shopifyProductId: shopifyId, shop,isDeleted: false });
+    const dbProduct = await Product.findOne({ shopifyProductId: shopifyId, shop, isDeleted: false });
 
     if (!dbProduct) {
       return new Response(
@@ -29,14 +29,15 @@ export const loader = async ({ request }: any) => {
 
     return new Response(
       JSON.stringify({
-        data:{
+        data: {
           id: dbProduct.shopifyProductId,
           title: dbProduct.title,
           description: dbProduct.description,
           sku: dbProduct.sku,
           price: dbProduct.price,
+          goalAmount: dbProduct.goalAmount,
           minimumDonation: dbProduct.minimumDonationAmount,
-          presetValue: dbProduct.presetValue, 
+          presetValue: dbProduct.presetValue,
           shop: dbProduct.shop,
         }
       }),

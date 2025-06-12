@@ -7,27 +7,29 @@ import { logger } from "../utils/logger";
 
 
 export const createProductInDb = async ({
-    shopifyProductId,
-    title,
-    variantId,
-    sku,
-    description,
-    price,
-    shop,
-    minimumDonationAmount = null,
+  shopifyProductId,
+  title,
+  variantId,
+  sku,
+  description,
+  price,
+  shop,
+  goalAmount,
+  minimumDonationAmount = null,
 }: CreateProductParams) => {
   try {
 
-        const product = await Product.create({
-            shopifyProductId,
-            title,
-            variantId,
-            sku,
-            description,
-            price,
-            shop,
-            minimumDonationAmount,
-        });
+    const product = await Product.create({
+      shopifyProductId,
+      title,
+      variantId,
+      sku,
+      description,
+      price,
+      shop,
+      goalAmount,
+      minimumDonationAmount,
+    });
 
     console.log("Product successfully created in DB:", product);
 
@@ -46,20 +48,20 @@ export const getProducts = async (
   shopName: string
 ): Promise<ProductApiResponse | ErrorResponse> => {
   try {
-    const skip:number = (page - 1) * pageSize;
+    const skip: number = (page - 1) * pageSize;
 
     const [products, totalCount] = await Promise.all([
-      Product.find({ shop:shopName,isDeleted: false })
+      Product.find({ shop: shopName, isDeleted: false })
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(pageSize)
         .lean() as unknown as ProductDocument[],
-      Product.countDocuments({ shop:shopName,isDeleted: false }),
+      Product.countDocuments({ shop: shopName, isDeleted: false }),
     ]);
 
-    const totalPages:number = Math.ceil(totalCount / pageSize);
-    const hasNextPage:boolean = page < totalPages;
-    const hasPrevPage:boolean = page > 1;
+    const totalPages: number = Math.ceil(totalCount / pageSize);
+    const hasNextPage: boolean = page < totalPages;
+    const hasPrevPage: boolean = page > 1;
 
     const pagination = {
       currentPage: page,
@@ -96,8 +98,9 @@ export const updateProductInDb = async ({
   description,
   sku,
   price,
+  goalAmount,
   minimumDonationAmount,
-  presetValue, 
+  presetValue,
 }: UpdateProductParams) => {
   try {
     const mongoResult = await Product.findOneAndUpdate(
@@ -109,7 +112,8 @@ export const updateProductInDb = async ({
           sku,
           price,
           minimumDonationAmount,
-          presetValue: presetValue, 
+          goalAmount,
+          presetValue: presetValue,
         },
       },
       { upsert: true, new: true }

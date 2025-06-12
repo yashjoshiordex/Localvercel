@@ -11,7 +11,7 @@ export const action = async ({ request }: any) => {
   // Get form data
   const body = await request.json();
 
-  const { productId, title, description, vendor, productType, sku, price, minimumDonationAmount, presetValue } = body;
+  const { productId, title, description, vendor, productType, sku, price, minimumDonationAmount, presetValue,goalAmount } = body;
 
   console.log("action function called with body:", presetValue);
 
@@ -133,7 +133,7 @@ export const action = async ({ request }: any) => {
 
     // --- MongoDB Update ---
     try {
-      await updateProductInDb({ productId, title, description, sku, price, minimumDonationAmount, presetValue });
+      await updateProductInDb({ productId, title, description, sku, price, minimumDonationAmount, presetValue,goalAmount });
       logger.info("MongoDB product updated successfully:", productId);
     } catch (mongoError) {
       logger.error("MongoDB update error:", mongoError instanceof Error ? mongoError.message : mongoError);

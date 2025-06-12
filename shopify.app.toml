@@ -3,7 +3,7 @@
 client_id = "a0b25aa84eb97a0a0c689abf5a6673aa"
 name = "Donate-Me"
 handle = "donate-me-1"
-application_url = "https://dealers-variety-notifications-components.trycloudflare.com"
+application_url = "https://das-significance-rim-select.trycloudflare.com"
 embedded = true
 
 [build]
@@ -31,9 +31,9 @@ scopes = "read_fulfillments,read_merchant_managed_fulfillment_orders,read_produc
 
 [auth]
 redirect_urls = [
-  "https://dealers-variety-notifications-components.trycloudflare.com/auth/callback",
-  "https://dealers-variety-notifications-components.trycloudflare.com/auth/shopify/callback",
-  "https://dealers-variety-notifications-components.trycloudflare.com/api/auth/callback"
+  "https://das-significance-rim-select.trycloudflare.com/auth/callback",
+  "https://das-significance-rim-select.trycloudflare.com/auth/shopify/callback",
+  "https://das-significance-rim-select.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

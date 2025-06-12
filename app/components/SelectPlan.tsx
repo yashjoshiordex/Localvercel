@@ -94,7 +94,6 @@ export default function SelectPlan({ nextStep }: IProps) {
       const data = await response.json();
 
       if (response.ok) {
-        console.log(data);
         fetchPlans();
       } else {
         console.log("Failed to fetch subscription details.");
@@ -118,7 +117,6 @@ export default function SelectPlan({ nextStep }: IProps) {
       const confirmationUrl = data?.confirmationUrl;
       // Navigate to Thank you page if it's a free plan
       if (data?.plan?.isFree) {
-        console.log("aeadadaf ======", data.plan)
         setBtnLoader({...btnLoader, toggle:false})
         if (isProductPage) {
           return navigate(`/app/planconfirmation/?plan=${planId}`);

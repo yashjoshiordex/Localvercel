@@ -5,6 +5,7 @@ export interface CreateProductParams {
   sku?: string;
   description: string;
   price: number;
+  goalAmount?: number | null;
   shop:string
   minimumDonationAmount?: number | null;
 }
@@ -73,6 +74,7 @@ export interface UpdateProductParams {
     minimumDonationAmount?: number;
     shopName?: string;
     price: number;
+    goalAmount?: number | null;
     presetValue?: number[] | null;
 }
 

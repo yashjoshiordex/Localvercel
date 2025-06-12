@@ -10,6 +10,7 @@ const productSchema = new mongoose.Schema(
         description: { type: String, required: true },
         price: { type: Number, required: true },
         minimumDonationAmount: { type: Number, default: null },
+        goalAmount: { type: Number, default: null },
         presetValue: { type: [Number], default: [] }, 
         shop: { type: String, required: true },
         isDeleted: { type: Boolean, default: false }

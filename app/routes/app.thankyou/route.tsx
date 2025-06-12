@@ -15,7 +15,21 @@ export default function ThankYou() {
 
   const hasFetched = useRef(false);
 
+    const [submitting, setSubmitting] = useState(false);
+
+const handleOnboard = async () => {
+  setSubmitting(true);
+  try {
+    // await fetch(`/api/onboarding`, { method: "POST", credentials: "include" });
+    navigate("/app/routedashboard");
+  } catch (error) {
+    console.log("Error: ", error);
+  } finally {
+    setSubmitting(false);
+  }
+};
   const fetchSubscriptionDetails = async () => {
+  
     try {
       const response = await fetch(
         `/api/get-subscription?charge_id=${chargeId}&plan=${planId}`,
@@ -42,36 +56,26 @@ export default function ThankYou() {
     }
   }, []);
   
-  const handleOnboard = async () => {
-    console.log("sdfdsf");
-    
-    try {
-      await fetch(`/api/onboarding`, {
-        method: "POST",
-        credentials: "include",
-      });
-      navigate("/app/dashboard");
-    } catch (error) {
-      console.log("Error: ", error);
-    }
-  };
+  // const handleOnboard = async () => {
+  //   console.log("sdfdsf");
+  //     navigate("/app/dashboard");
+  //   // try {
+  //   //   await fetch(`/api/onboarding`, {
+  //   //     method: "POST",
+  //   //     credentials: "include",
+  //   //   });
+  //   //   navigate("/app/dashboard");
+  //   // } catch (error) {
+  //   //   console.log("Error: ", error);
+  //   // }
+  // };
+
   return (
     <Page>
       <Layout>
         <Layout.Section>
           <Box background="bg-surface" padding="500" borderRadius="300">
-            {/* Optional logo area */}
-            {/* 
-            <div className="mb-3">
-              <InlineStack align="center" blockAlign="center">
-                <Image
-                  source={Logo}
-                  alt="DonateMe Logo"
-                  width={80}
-                />
-              </InlineStack>
-            </div> 
-            */}
+
 
             <div className="text-center">
               <Text as="h1" variant="headingLg">
