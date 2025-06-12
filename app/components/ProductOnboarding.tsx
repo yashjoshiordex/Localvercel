@@ -6,28 +6,57 @@ import { set } from "mongoose";
 type IProps = {
   createProductCTA: Function;
   productCreated: boolean;
-  setProductCreated:Function
- };
+  setProductCreated: Function;
+};
 
 type IFormData = {
   title: string;
+  description: string;
 };
 
 export default function ProductOnborading({
   createProductCTA,
   productCreated,
-  setProductCreated
+  setProductCreated,
 }: IProps) {
   const [loader, setLoader] = useState<boolean>(false);
   // const [productCreated, setProductCreated] = useState<boolean>(false);
   const [formData, setFormData] = useState<IFormData>({
     title: "",
+    description: "",
   });
-  const [validation, setValidation] = useState<boolean>(true);
+  const [invalidInput, setInvalidInput] = useState<string[]>([]);
+
+  const handleInputChange = (field: keyof typeof formData, value: string) => {
+    setFormData((prevData) => ({ ...prevData, [field]: value }));
+    setLoader(false);
+    setInvalidInput((fields) => fields.filter((f) => f !== field));
+  };
+
+  const handleValidation = () => {
+    const invalidInputs: string[] = [];
+    let validationToggle = true;
+
+    if (formData.title === "") {
+      invalidInputs.push("title");
+      validationToggle = false;
+    }
+    if (formData.description === "") {
+      invalidInputs.push("description");
+      validationToggle = false;
+    }
+    if (invalidInputs.length > 0) {
+      validationToggle = false;
+    }
+
+    setInvalidInput([...invalidInput, ...invalidInputs]);
+
+    return validationToggle;
+  };
 
   const handleSubmit = async () => {
     setLoader(true);
-    if (formData.title !== "") {
+    if (handleValidation()) {
       const res = await fetch("/api/createProduct", {
         method: "POST",
         body: JSON.stringify(formData),
@@ -42,17 +71,16 @@ export default function ProductOnborading({
       setLoader(false);
     } else {
       setLoader(false);
-      setValidation(false);
     }
   };
 
-  useEffect(()=>{
+  useEffect(() => {
     if (localStorage.getItem("product")) {
       createProductCTA();
     } else {
       setProductCreated(false);
     }
-  },[])
+  }, []);
 
   return (
     <>
@@ -82,34 +110,50 @@ export default function ProductOnborading({
           </div>
 
           <Form onSubmit={handleSubmit}>
-            <FormLayout>
-              <TextField
-                label="Product Title"
-                autoComplete="off"
-                onChange={(value) => {
-                  setFormData({ ...formData, title: value });
-                  setValidation(true);
-                  setLoader(false);
-                }}
-                name="title"
-                value={formData.title}
-              />
-              {!validation && (
-                <Text variant="bodyMd" as="p">
-                  Product title should not be empty.
-                </Text>
-              )}
-              <div className="text-center">
-                <Button submit variant="primary" disabled={loader} loading={loader}>
-                  Create Product
-                </Button>
-              </div>
-            </FormLayout>
+            <div className="custom-form">
+              <FormLayout>
+                <TextField
+                  label="Product Title"
+                  autoComplete="off"
+                  onChange={(value) => handleInputChange("title", value)}
+                  name="title"
+                  value={formData.title}
+                />
+                {invalidInput.includes("title") && (
+                  <Text variant="bodyMd" as="p">
+                    Product title should not be empty.
+                  </Text>
+                )}
+                <TextField
+                  label="Description"
+                  autoComplete="off"
+                  onChange={(value) => handleInputChange("description", value)}
+                  name="description"
+                  value={formData.description}
+                />
+                {invalidInput.includes("description") && (
+                  <div>
+                    <Text variant="bodyMd" as="p">
+                      Product description should not be empty.
+                    </Text>
+                  </div>
+                )}
+                <div className="text-center">
+                  <Button
+                    submit
+                    variant="primary"
+                    disabled={loader}
+                    loading={loader}
+                  >
+                    Create Product
+                  </Button>
+                </div>
+              </FormLayout>
+            </div>
           </Form>
         </>
-      ) : (
-        <Productcreated />
-      )}
+      ) :  <Productcreated />
+      }
     </>
   );
 }

@@ -6,13 +6,13 @@ const productSchema = new mongoose.Schema(
         shopifyProductId: { type: String, required: true, unique: true },
         title: { type: String, required: true },
         variantId: { type: String, required: true },
-        // sku: { type: String, required: true },
+        sku: { type: String, default: null },
+        description: { type: String, required: true },
         price: { type: Number, required: true },
-        storeId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Session",
-            required: true,
-        },
+        minimumDonationAmount: { type: Number, default: null },
+        presetValue: { type: [Number], default: [] }, 
+        shop: { type: String, required: true },
+        isDeleted: { type: Boolean, default: false }
     },
     { timestamps: true }
 );

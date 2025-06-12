@@ -3,9 +3,8 @@ import mongoose, { Schema, Document, Model, Types } from 'mongoose';
 /* 🔷 Subscription Schema        */
 const subscriptionSchema = new Schema(
   {
-    storeId: {
-      type: Schema.Types.ObjectId,
-      ref: 'sessions',
+    shop: {
+      type: String,
       required: true,
       index: true,
     },
@@ -34,10 +33,9 @@ subscriptionSchema.virtual('stringId').get(function () {
   return this._id.toString();
 });
 
-
 /* 🔷 Subscription TypeScript Interface  */
 export interface ISubscription extends Document {
-  storeId: Types.ObjectId;
+  shop: string;
   planId: Types.ObjectId;
   chargeId: string | null;
   status: 'active' | 'cancelled' | 'expired' | 'frozen';
@@ -45,7 +43,6 @@ export interface ISubscription extends Document {
   createdAt: Date;
   updatedAt: Date;
 }
-
 
 /* 🔷 Subscription Model Export     */
 export const Subscription: Model<ISubscription> =

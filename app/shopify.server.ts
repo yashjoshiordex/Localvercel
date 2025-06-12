@@ -22,10 +22,6 @@ const shopify = shopifyApp({
     ORDERS_CREATE: {
       deliveryMethod: DeliveryMethod.Http,
       callbackUrl: '/webhooks',
-      callback: async (topic, shop, body) => {
-        console.log(`Webhook received: ${topic} for shop: ${shop}`);
-        // Handle app uninstall (e.g., delete session from DB)
-      },
     },
     APP_UNINSTALLED: {
       deliveryMethod: DeliveryMethod.Http,

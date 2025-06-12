@@ -6,10 +6,8 @@ import {logger} from "app/server/utils/logger";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
   try {
-    // const body = await request.json();
-    // const { shop } = body;
     const { session } = await authenticate.admin(request);
-    const shop = session?.shop;
+    const shop:string = session?.shop;
     if (!shop) {
       logger.error("Shop domain is required");
       return new Response("Shop domain is required", { status: 400 });

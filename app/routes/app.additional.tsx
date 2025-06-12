@@ -13,7 +13,18 @@ import { useEffect } from "react";
 
 export default function AdditionalPage() {
   useEffect(() => {
-    fetch("/api/hello")
+    fetch("/api/createProduct", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: "new",
+        description: "new",
+        sku: "123",
+        minDonation: 23,
+      }),
+    })
       .then((res) => res.json())
       .then((data) => console.log(data.message))
       .catch((err) => console.error("Error fetching API:", err));

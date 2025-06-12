@@ -20,5 +20,21 @@ const sessionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+export interface ISession {
+  _id: string;
+  id: string;
+  shop: string;
+  accessToken: string;
+  createdAt: Date;
+  updatedAt: Date;
+  expires: Date | null;
+  isOnline: boolean;
+  isUninstall: boolean;
+  onboardingCompleted: boolean;
+  scope: string;
+  state: string;
+  uninstallTime: Date;
+}
+
 export const SessionModel =
   mongoose.models.Session || mongoose.model("Session", sessionSchema);

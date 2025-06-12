@@ -2,7 +2,47 @@ import React, { useEffect, useState } from "react";
 import { Box, Button, Card, Page, Text, Layout } from "@shopify/polaris";
 import "../css/style.css";
 
+interface Plan {
+  _id: string;
+  id: string;
+  name: string;
+  price: number;
+  trialDays: number;
+  interval: string;
+  features: string[];
+}
 const Dashboard = () => {
+    const [currentPlan, setCurrentPlanPlans] = useState<Plan>();
+    const [loader, setLoader] = useState<boolean>(false);
+
+    console.log('first')
+  useEffect(() => {
+      setLoader(true);
+      const fetchPlans = async () => {
+        try {
+          const response = await fetch("/api/dashboard");
+  
+          if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+          }
+  
+          const data = await response.json();
+  
+          if (data) {
+            console.log("Received plans:", data.plan);
+            setCurrentPlanPlans(data.plan);
+          } else {
+            console.error("Unexpected response structure: 'plans' not found.");
+          }
+        } catch (error) {
+          console.error("Failed to fetch plans:", error);
+        } finally {
+          setLoader(false);
+        }
+      };
+      fetchPlans();
+    }, []);
+
   return (
     <>
       <Page>
@@ -14,11 +54,11 @@ const Dashboard = () => {
               </Text>
               <Card>
                 <Text as="h2" variant="bodyMd">
-                  You are currently subscribed to the Free Plan.
+                  You are currently subscribed to the {currentPlan?.name}.
                 </Text>
-                <Text as="h2" variant="bodyMd">
+                {/* <Text as="h2" variant="bodyMd">
                   Your monthly included usage is US$100
-                </Text>
+                </Text> */}
 
                 <div className="mt-1">
                   <Button variant="primary">Change Plan</Button>

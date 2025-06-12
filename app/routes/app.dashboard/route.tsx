@@ -10,7 +10,7 @@ export const Dashboard = () => {
     setLoader(true);
     const fetchPlans = async () => {
       try {
-        const response = await fetch("/api/plans");
+        const response = await fetch("/api/dashboard");
 
         if (!response.ok) {
           throw new Error(`Server error: ${response.status}`);
@@ -18,8 +18,8 @@ export const Dashboard = () => {
 
         const data = await response.json();
 
-        if (data?.plans) {
-          setCurrentPlanPlans(data.plans);
+        if (data) {
+          setCurrentPlanPlans(data);
         } else {
           console.error("Unexpected response structure: 'plans' not found.");
         }

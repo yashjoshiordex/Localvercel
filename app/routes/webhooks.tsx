@@ -2,6 +2,8 @@ import { ActionFunction } from "@shopify/remix-oxygen";
 import shopify, { authenticate } from "../shopify.server"; // path should be correct
 import crypto from "crypto";
 import { SessionModel } from "app/server/models/mongoose-session-model";
+import { handleOrderFulfillment } from "app/server/services/fullfilment.service";
+import { logger } from "app/server/utils/logger";
 
 enum WebhookTopic {
   ORDERS_CREATE = "ORDERS_CREATE",
@@ -53,15 +55,43 @@ export const action: ActionFunction = async ({ request }) => {
     console.log("Parsed payload:", payload);
     // Handle different Shopify webhook topics
     switch (topic) {
+      // case WebhookTopic.ORDERS_CREATE:
+      //   console.log("Handling ORDERS_CREATE webhook");
+      //   return new Response(
+      //     JSON.stringify({
+      //       success: true,
+      //       message: "Order created webhook processed.",
+      //     }),
+      //     { status: 200 },
+      //   );
       case WebhookTopic.ORDERS_CREATE:
         console.log("Handling ORDERS_CREATE webhook");
-        return new Response(
-          JSON.stringify({
-            success: true,
-            message: "Order created webhook processed.",
-          }),
-          { status: 200 },
-        );
+        try {
+          const shop = request.headers.get("x-shopify-shop-domain");
+          if (!shop) {
+            throw new Error("No shop domain provided");
+          }
+          await handleOrderFulfillment(shop, payload, admin);
+
+          return new Response(
+            JSON.stringify({
+              success: true,
+              message: "Order created webhook processed.",
+            }),
+            { status: 200 },
+          );
+        } catch (error) {
+          console.log("Error processing order webhook", error);
+
+          logger.error(`Error processing order webhook ${error}`);
+          return new Response(
+            JSON.stringify({
+              success: false,
+              message: "Error processing order webhook",
+            }),
+            { status: 500 },
+          );
+        }
 
       case WebhookTopic.PRODUCTS_CREATE:
         console.log("Handling PRODUCTS_CREATE webhook");

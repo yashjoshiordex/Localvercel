@@ -1,14 +1,12 @@
 import { ISubscription, Subscription } from "../models/subscriptions";
 
-
 /**
  * Get the active subscription for a given shop domain
  */
-export async function getShopSubscription(storeId: string): Promise<ISubscription | null> {
+export async function getShopSubscription(shop: string): Promise<ISubscription | null> {
     try {
-
         const subscription: any = await Subscription.findOne({
-            storeId,
+            shop,
             status: 'active',
         })
             .sort({ createdAt: -1 })
@@ -22,7 +20,7 @@ export async function getShopSubscription(storeId: string): Promise<ISubscriptio
             _id: subscription._id.toString(),
         };
     } catch (error) {
-        console.error(`Error fetching subscription for shop ${storeId}:`, error);
+        console.error(`Error fetching subscription for shop ${shop}:`, error);
         throw error;
     }
 }
@@ -32,11 +30,10 @@ export async function getShopSubscription(storeId: string): Promise<ISubscriptio
  */
 export async function createSubscription(subscriptionData: Partial<ISubscription>): Promise<ISubscription> {
     try {
-
-        // Cancel all existing active subscriptions for the same store
+        // Cancel all existing active subscriptions for the same shop
         await Subscription.updateMany(
             {
-                storeId: subscriptionData.storeId,
+                shop: subscriptionData.shop,
                 status: 'active',
             },
             {

@@ -6,14 +6,11 @@ import { IPlan } from "app/server/models/plan";
 import { createSubscription } from "app/server/services/subscription.service";
 import { ISubscription, Subscription } from "app/server/models/subscriptions";
 import {logger} from "app/server/utils/logger"; // <-- Add this import
+import { toObjectId } from "app/server/utils/objectIdconvert";
 
 /**
  * Converts a string or ObjectId to a Mongoose ObjectId.
  */
-function toObjectId(id: string | Types.ObjectId) {
-  return typeof id === "string" ? new Types.ObjectId(id) : id;
-}
-
 export async function loader({ request }: { request: Request }) {
   try {
     // Step 1: Authenticate admin and extract session
@@ -63,7 +60,7 @@ export async function loader({ request }: { request: Request }) {
     let store: any;
     try {
       store = await SessionModel.findOne({ shop: session.shop }).lean();
-      if (!store || !store._id) {
+      if (!store || !store.shop) {
         logger.error("Store not found", { shop: session.shop });
         return new Response(JSON.stringify({ error: "Store not found" }), {
           status: 404,
@@ -81,7 +78,7 @@ export async function loader({ request }: { request: Request }) {
     if (planConfig.price == 0) {
       logger.info("Free plan selected", { planId: planConfig.id, shop: session.shop });
       const subscription: ISubscription = await createSubscription({
-        storeId: toObjectId(store._id),
+        shop: session.shop,
         planId: toObjectId(planConfig._id as string),
         chargeId: null,
         currentPeriodEnd: null,
@@ -165,7 +162,7 @@ export async function loader({ request }: { request: Request }) {
     try {
       const existingSubscription = await Subscription.findOne({
         chargeId,
-        storeId: toObjectId(store._id),
+        shop: session.shop, 
       }).lean();
       logger.info("Checked for existing subscription", { existingSubscription });
 
@@ -179,7 +176,7 @@ export async function loader({ request }: { request: Request }) {
 
       // If not exists, create subscription
       const subscription: ISubscription = await createSubscription({
-        storeId: toObjectId(store._id),
+        shop: session.shop, 
         planId: toObjectId(planConfig._id as string),
         chargeId,
         currentPeriodEnd: subscriptionData.currentPeriodEnd

@@ -10,7 +10,8 @@ import { updateProductVariant } from "app/server/ShopifyServices/updateVariant";
 import { withAuth } from "app/server/utils/withAuth";
 import { Session } from "@shopify/shopify-app-remix/server";
 import { AdminApiContextWithoutRest } from "node_modules/@shopify/shopify-app-remix/dist/ts/server/clients";
-import {logger} from "app/server/utils/logger";
+import { logger } from "app/server/utils/logger";
+import { createProductInDb } from "app/server/controllers/product.Controller";
 
 // ────────────────────────────────────────────────────────────────────────────────
 // Types
@@ -31,6 +32,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       /* 2️⃣  Parse & validate body ------------------------------------------------ */
       const body = await request.json();
       const parsed = validateProductInput(body);
+      console.log("Parsed product input:", body);
 
       if (!parsed.success) {
         logger.error("Product input validation failed", { error: parsed.error });
@@ -40,15 +42,15 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         });
       }
 
-      const { title } = parsed.data;
-      const shopDomain = session.shop;
+      const { title, description, sku } = parsed.data;
+      const shopDomain: string = session.shop;
 
       /* 3️⃣  Create product in Shopify ------------------------------------------- */
       const { product, variantId, errors: createErrors }: CreateProductResult =
-        await createShopifyProduct(admin, title);
+        await createShopifyProduct(admin, title, description);
 
-      if (createErrors.length > 0) {
-        logger.error("Shopify product creation errors", { errors: createErrors });
+      if (createErrors?.length > 0) {
+        logger.error(`Shopify product creation errors ${JSON.stringify(createErrors)}`);
         return new Response(JSON.stringify({ error: createErrors }), {
           status: 400,
           headers: { "Content-Type": "application/json" },
@@ -57,16 +59,22 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
       logger.info("Product created in Shopify", { productId: product.id, shop: shopDomain });
 
+
       const variantErrors: VariantUpdateErrors = await updateProductVariant(
         admin,
         product.id,
         variantId,
-        10, // Example: hard-coded price
+        body.price ?? 10,   // ← your price logic from earlier
+        sku,          // optional
+        body.minDonation  // optional metafield; omit or set undefined to skip
       );
 
       if (variantErrors?.length > 0) {
+        console.log("Variant update errors:", variantErrors);
         logger.error("Variant update errors", { errors: variantErrors });
       } else {
+        console.log("Variant update errors:", variantErrors);
+
         logger.info("Product variant updated", { productId: product.id, variantId });
       }
 
@@ -81,14 +89,17 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       }
 
       try {
-        await Product.create({
+        const savedProduct = await createProductInDb({
           shopifyProductId: product.id,
           title,
           variantId,
-          storeId: shopSession._id,
-          price: 10,
+          sku: sku ?? null,
+          description,
+          price: body.price ?? 10,
+          shop:shopDomain,
+          minimumDonationAmount: body.minDonation ?? null,
         });
-        logger.info("Product saved to database", { productId: product.id, shop: shopDomain });
+        logger.info(`Product saved to database : ${JSON.stringify(savedProduct)}`, { shop: shopDomain });
       } catch (err) {
         logger.error("DB save error", { error: err });
         return new Response(

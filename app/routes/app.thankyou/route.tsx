@@ -41,6 +41,7 @@ export default function ThankYou() {
       hasFetched.current = true;
     }
   }, []);
+  
   const handleOnboard = async () => {
     try {
       await fetch(`/api/onboarding`, {

@@ -2,77 +2,390 @@ import {
   Modal,
   FormLayout,
   TextField,
-  Text
-} from '@shopify/polaris';
-import React from 'react';
-
-import { type FC } from 'react';
-
+  Text,
+  Toast,
+  BlockStack,
+  InlineStack,
+} from "@shopify/polaris";
+import React, { useEffect, useState } from "react";
+import { type FC } from "react";
+import CustomToast from "./CustomToast";
+import { memo } from "react";
+import { fetchData } from "app/utils/helper";
 interface CreateDonationModalProps {
   open: boolean;
   onClose: () => void;
+  id?: string | "";
+  fetchPage:Function
 }
 
-const CreateDonationModal: FC<CreateDonationModalProps> = ({ open, onClose }) => {
-  return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      title="Create New Donation Product"
-      primaryAction={{
-        content: 'Save',
-        onAction: () => {
-          // Save logic here
-          onClose();
-        },
-      }}
-      secondaryActions={[
-        {
-          content: 'Cancel',
-          onAction: onClose,
-        },
-      ]}
-    >
-      <Modal.Section>
-        <FormLayout>
-          <TextField
-            label="Title"
-            value=""
-            onChange={() => {}}
-            autoComplete="off"
-          />
-          <TextField
-            label="Description"
-            value=""
-            onChange={() => {}}
-            multiline
-            autoComplete="off"
-          />
-          <div>
-            <Text variant="headingSm" as="h6">
-              Minimum Donation Value
-            </Text>
-            <Text tone="subdued" as="p">
-              Set the minimum donation value that will be accepted. This will be applicable to the Online Store, Shopify POS and Post-Checkout donations.
-            </Text>
+interface IFormData {
+  productId?: string;
+  title: string;
+  description: string;
+  minimumDonationAmount: number | null;
+  sku: number | null | string;
+  presetvalue: any[];
+  price: number | null;
+}
 
+const CreateProductModal: FC<CreateDonationModalProps> = memo(
+  ({ open, onClose, id, fetchPage }) => {
+    const [data, setData] = useState<any>();
+    const [gid, setGid] = useState<string>("");
+    const [toastActive, setToastActive] = useState({
+      toggle: false,
+      content: "",
+    });
+    const [loader, setLoader] = useState<boolean>(false);
+    const [validation, setValidation] = useState<boolean>(true);
+    const [showToast, setShowToast] = useState(false);
+
+    const [formData, setFormData] = useState<IFormData>({
+      productId: "",
+      title: "",
+      description: "",
+      minimumDonationAmount: null,
+      sku: "0",
+      presetvalue: ["", "", ""],
+      price: 10,
+    });
+
+    const handleInputChange = (field: keyof typeof formData, value: string) => {
+      setFormData((prevData) => ({ ...prevData, [field]: value }));
+      setLoader(false);
+    };
+
+    const handlePresetValue = (index: number, value: string) => {
+      setFormData((prevData) => {
+        const updatedPresetValues = [...prevData.presetvalue];
+        updatedPresetValues[index] = value;
+        return {
+          ...prevData,
+          presetvalue: updatedPresetValues,
+        };
+      });
+    };
+
+    const handleSubmit = async () => {
+      setLoader(true);
+
+      if (!formData.title.trim()) {
+        setValidation(false);
+        setLoader(false);
+        return;
+      }
+
+      if (id !== "") {
+        // const {presetvalue, ...data} = formData
+
+        const payload = {
+          productId: formData.productId,
+          title: formData.title,
+          description: formData.description,
+          minimumDonationAmount: formData.minimumDonationAmount,
+          sku: formData.sku,
+          presetValue: formData.presetvalue,
+          price: formData.price,
+        };
+
+        await fetch(`/api/updateProduct?id=${id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(payload),
+        })
+          .then((res: any) =>{ res.json()
+            setFormData({
+        title: "",
+        description: "",
+        minimumDonationAmount: null,
+        sku: 0,
+        presetvalue: [],
+        price: 0,
+      });
+            fetchPage()
+          })
+          .then(
+            (data: any) => (
+              setToastActive({
+                toggle: true,
+                content: "Product created successfully!",
+              }),
+              onClose()
+            ),
+          )
+          .catch((err: any) => console.error("Error fetching API:", err))
+          .finally(() => setLoader(false));
+
+        // try {
+        //   const res = await axios.post(
+        //     `/api/updateProduct?id=${data.id}`,
+        //     formData,
+        //   );
+        //   setShowToast(true);
+        //   if (res.status === 200 || res.status === 201) {
+        //     setToastActive({
+        //       toggle: true,
+        //       content: "Product updated successfully!",
+        //     });
+        //     // onClose();
+        //   } else {
+        //     setToastActive({ toggle: true, content: "Something went wrong!" });
+        //   }
+        // } catch (error) {
+        //   console.error("Submit Error:", error);
+        //   setToastActive({ toggle: true, content: "Something went wrong!" });
+        // } finally {
+        //   setLoader(false);
+        // }
+      } else {
+        // try {
+        //   const {presetvalue, ...data} = formData
+        //   const res = await axios.post("/api/createProduct", data, );
+        //   setShowToast(true);
+        //   if (res.status === 200 || res.status === 201) {
+        //     setToastActive({
+        //       toggle: true,
+        //       content: "Product created successfully!",
+        //     });
+        //     // onClose();
+        //   } else {
+        //     setToastActive({ toggle: true, content: "Something went wrong!" });
+        //   }
+        // } catch (error) {
+        //   console.error("Submit Error:", error);
+        //   setToastActive({ toggle: true, content: "Something went wrong!" });
+        // } finally {
+        //   setLoader(false);
+        // }
+        const { presetvalue, ...data } = formData;
+        await fetch("/api/createProduct", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify(data),
+        })
+          .then((res) => {
+            fetchPage()
+            res.json()})
+          .then(
+            (data) => (
+              setToastActive({
+                toggle: true,
+                content: "Product created successfully!",
+              }),
+              onClose()
+            ),
+          )
+          .catch((err) => console.error("Error fetching API:", err))
+          .finally(() => setLoader(false));
+      }
+    };
+    console.log("id",id, typeof id);
+    
+    const handleClose = () => {
+      setFormData({
+        title: "",
+        description: "",
+        minimumDonationAmount: null,
+        sku: 0,
+        presetvalue: [],
+        price: 0,
+      });
+    console.log("close =======")
+      onClose();
+    };
+
+    useEffect(() => {
+      if (id) {
+        fetchData(`/api/getproductbyid?id=${id}`, setData, setLoader)
+      } 
+    }, [id]);
+
+    useEffect(() => {
+      if (data) {
+        setFormData({
+          title: data.data.title,
+          description: data.data.description,
+          minimumDonationAmount: data.data.minimumDonationAmount,
+          sku: data.data.sku,
+          presetvalue: data.data.presetValue,
+          price: data.data.price,
+          productId: data.data.id,
+        });
+      }
+    }, [data]);
+
+    return (
+      <Modal
+        open={open}
+        onClose={handleClose}
+        title={
+          id !== ""
+            ? "Edit Donation Product"
+            : "Create New Donation Product "
+        }
+        primaryAction={{
+          content: "Save",
+          loading: loader,
+          onAction: () => {
+            handleSubmit();
+          },
+        }}
+        secondaryActions={[
+          {
+            content: "Cancel",
+            onAction: ()=>{
+              handleClose();
+            },
+          },
+        ]}
+      >
+        <Modal.Section>
+          <FormLayout>
             <TextField
-              label="Minimum Donation Value"
-              value=""
-              onChange={() => {}}
+              label="Title"
+              value={formData.title}
+              onChange={(value) => handleInputChange("title", value)}
               autoComplete="off"
             />
-          </div>
+            {!validation && (
+              <Text variant="bodyMd" as="p">
+                Product title should not be empty.
+              </Text>
+            )}
+            <TextField
+              label="Description"
+              value={formData.description}
+              onChange={(value) => handleInputChange("description", value)}
+              multiline
+              autoComplete="off"
+            />
+            <div>
+              <Text variant="headingSm" as="h6">
+                Minimum Donation Value
+              </Text>
+              <Text tone="subdued" as="p">
+                Set the minimum donation value that will be accepted. This will
+                be applicable to the Online Store, Shopify POS and Post-Checkout
+                donations.
+              </Text>
 
-          <TextField
-            label="Stock Keeping Unit (SKU)"
-            value=""
-            onChange={() => {}}
-            autoComplete="off"
+              <TextField
+                label="Minimum Donation Value"
+                value={formData?.minimumDonationAmount?.toString()}
+                onChange={(value) =>
+                  handleInputChange("minimumDonationAmount", value)
+                }
+                autoComplete="off"
+                disabled
+              />
+            </div>
+
+            <TextField
+              label="Stock Keeping Unit (SKU)"
+              value={formData?.sku?.toString()}
+              onChange={(value) => handleInputChange("sku", value)}
+              autoComplete="off"
+            />
+            {/* {id !== "" && (
+              <BlockStack>
+                <Text as="h2" variant="headingSm">
+                  Preset Values
+                </Text>
+                <div className="mb-2">
+                  <Text as="p" tone="subdued">
+                    Allow customers to choose from preset donation amounts when
+                    they view the donation widget. You can add up to three
+                    preset values.
+                  </Text>
+                </div>
+                <InlineStack gap="400" align="start">
+                  {formData?.presetvalue?.map((curVal, id) => (
+                    <BlockStack gap="100">
+                      <Text variant="bodySm" as="span" fontWeight="bold">
+                        {`Value ${id + 1}`}
+                      </Text>
+                      <TextField label="" autoComplete="off" value={curVal.value1} />
+                    </BlockStack>
+                  ))}
+                </InlineStack>
+              </BlockStack>
+            )} */}
+
+          {id &&  <BlockStack>
+              <Text as="h2" variant="headingSm">
+                Preset Values
+              </Text>
+              <div className="mb-2">
+                <Text as="p" tone="subdued">
+                  Allow customers to choose from preset donation amounts when
+                  they view the donation widget. You can add up to three preset
+                  values.
+                </Text>
+              </div>
+               <InlineStack gap="400" align="start">
+                <BlockStack gap="100">
+                  <Text variant="bodySm" as="span" fontWeight="bold">
+                    Value 1
+                  </Text>
+                  <TextField
+                    label=""
+                    autoComplete="off"
+                    onChange={(value) => handlePresetValue(0, value)}
+                    value={formData.presetvalue[0]}
+                  />
+                </BlockStack>
+                <BlockStack gap="100">
+                  <Text variant="bodySm" as="span" fontWeight="bold">
+                    Value 2
+                  </Text>
+                  <TextField
+                    label=""
+                    autoComplete="off"
+                    onChange={(value) => handlePresetValue(1, value)}
+                    value={formData.presetvalue[1]}
+                  />
+                </BlockStack>
+                <BlockStack gap="100">
+                  <Text variant="bodySm" as="span" fontWeight="bold">
+                    Value 3
+                  </Text>
+                  <TextField
+                    label=""
+                    autoComplete="off"
+                    onChange={(value) => handlePresetValue(2, value)}
+                    value={formData.presetvalue[2]}
+                  />
+                </BlockStack>
+              </InlineStack>
+            </BlockStack>}
+          </FormLayout>
+        </Modal.Section>
+
+        {/* {toastActive.toggle && (
+        <Toast
+          content="Donation product saved successfully"
+          onDismiss={() =>
+            setToastActive({ ...toastActive, toggle: !toastActive.toggle })
+          }
+        />
+      )} */}
+        {showToast && (
+          <CustomToast
+            content="Donation product saved successfully"
+            onDismiss={() => setShowToast(false)}
           />
-        </FormLayout>
-      </Modal.Section>
-    </Modal>
-  );
-}
-export default CreateDonationModal;
+        )}
+      </Modal>
+    );
+  },
+);
+
+const CreateProduct = memo(CreateProductModal);
+export default CreateProduct;

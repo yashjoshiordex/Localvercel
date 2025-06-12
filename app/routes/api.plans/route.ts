@@ -19,7 +19,7 @@ export async function loader({ request }: any) {
         }
 
         const plans = await getAllPlans();
-        const currentSubscription = await getShopSubscription(shopData._id);
+        const currentSubscription = await getShopSubscription(shopData.shop);
 
         logger.info("Plans and subscription loaded", { shop });
 

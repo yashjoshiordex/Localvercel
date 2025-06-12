@@ -3,7 +3,7 @@
 client_id = "a0b25aa84eb97a0a0c689abf5a6673aa"
 name = "Donate-Me"
 handle = "donate-me-1"
-application_url = "https://singapore-renaissance-venture-cons.trycloudflare.com"
+application_url = "https://attacked-iraqi-car-ro.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,13 +27,13 @@ api_version = "2025-04"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_products,write_orders,write_products"
+scopes = "read_fulfillments,read_merchant_managed_fulfillment_orders,read_products,read_publications,write_assigned_fulfillment_orders,write_fulfillments,write_merchant_managed_fulfillment_orders,write_orders,write_products,write_publications,write_third_party_fulfillment_orders"
 
 [auth]
 redirect_urls = [
-  "https://singapore-renaissance-venture-cons.trycloudflare.com/auth/callback",
-  "https://singapore-renaissance-venture-cons.trycloudflare.com/auth/shopify/callback",
-  "https://singapore-renaissance-venture-cons.trycloudflare.com/api/auth/callback"
+  "https://attacked-iraqi-car-ro.trycloudflare.com/auth/callback",
+  "https://attacked-iraqi-car-ro.trycloudflare.com/auth/shopify/callback",
+  "https://attacked-iraqi-car-ro.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
