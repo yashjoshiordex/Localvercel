@@ -22,7 +22,7 @@ const Dashboard = () => {
       const fetchPlans = async () => {
         try {
           const response = await fetch("/api/dashboard");
-  
+          await fetch("/api/onboarding")
           if (!response.ok) {
             throw new Error(`Server error: ${response.status}`);
           }
@@ -42,6 +42,7 @@ const Dashboard = () => {
         }
       };
       fetchPlans();
+      
     }, []);
 
   return (
