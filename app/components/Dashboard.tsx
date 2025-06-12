@@ -22,7 +22,9 @@ const Dashboard = () => {
       const fetchPlans = async () => {
         try {
           const response = await fetch("/api/dashboard");
-          await fetch("/api/onboarding")
+          await fetch("/api/onboarding",{
+            method:"POST"
+          })
           if (!response.ok) {
             throw new Error(`Server error: ${response.status}`);
           }
