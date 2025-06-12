@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, Button, Card, Page, Text, Layout } from "@shopify/polaris";
 import "../css/style.css";
+import { useNavigate } from "@remix-run/react";
 
 interface Plan {
   _id: string;
@@ -12,6 +13,7 @@ interface Plan {
   features: string[];
 }
 const Dashboard = () => {
+  const navigate = useNavigate();
     const [currentPlan, setCurrentPlanPlans] = useState<Plan>();
     const [loader, setLoader] = useState<boolean>(false);
 
@@ -61,7 +63,7 @@ const Dashboard = () => {
                 </Text> */}
 
                 <div className="mt-1">
-                  <Button variant="primary">Change Plan</Button>
+                  <Button variant="primary" onClick={()=> navigate("/app/plans")}>Change Plan</Button>
                 </div>
               </Card>
 

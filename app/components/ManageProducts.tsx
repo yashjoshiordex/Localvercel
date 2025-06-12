@@ -111,25 +111,6 @@ const handleNext = () => {
 };
 
 
-
-  // const handlePrevious = () => {
-  //   console.log("prev", pagination.prevPage)
-  //   pagination.prevPage !== null &&
-  //     fetchData(
-  //       `/api/get-products?page=${pagination.prevPage}&pageSize=10`,
-  //       setData,
-  //       setLoader,
-  //     );
-  // };
-  // const handleNext = () => {
-  //   pagination.nextPage !== null &&
-  //     fetchData(
-  //       `/api/get-products?page=${pagination.nextPage}&pageSize=10`,
-  //       setData,
-  //       setLoader,
-  //     );
-  // };
-
   const handleConfirmation = useCallback(async () => {
     //APi call to delete the product
     try {
@@ -149,13 +130,7 @@ const handleNext = () => {
   }, [productId]);
 
   useEffect(() => {
-    // fetchAllData();
     fetchPage()
-    // setTimeout(() => {
-    //   if (data !== undefined) {
-    //     setPagination(data.getProductsData.data.pagination);
-    //   }
-    // }, 1000);
   }, []);
 
   useEffect(() => {
@@ -173,7 +148,7 @@ const handleNext = () => {
             Donation Products
           </Text>
           <InlineStack gap="200">
-            <Button>Manage POS Locations</Button>
+            {/* <Button>Manage POS Locations</Button> */}
             <Button
               variant="primary"
               size="medium"

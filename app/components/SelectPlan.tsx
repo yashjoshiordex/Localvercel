@@ -89,7 +89,7 @@ export default function SelectPlan({ nextStep }: IProps) {
   const fetchSubscriptionDetails = async () => {
     try {
       const response = await fetch(
-        seletedPlan.planPrice == null ? `/api/get-subscription?charge_id=${null}&plan=${seletedPlan.planId}` : `/api/get-subscription?charge_id=${chargeId}&plan=${planId}`,
+         `/api/get-subscription?charge_id=${chargeId}&plan=${planId}`,
       );
       const data = await response.json();
 
@@ -121,7 +121,8 @@ export default function SelectPlan({ nextStep }: IProps) {
         console.log("aeadadaf ======", data.plan)
         setBtnLoader({...btnLoader, toggle:false})
         if (isProductPage) {
-          fetchSubscriptionDetails(); // Call fetchData only in product page
+          return navigate(`/app/planconfirmation/?plan=${planId}`);
+          // fetchSubscriptionDetails(); // Call fetchData only in product page
         } else {
           return navigate(`/app/thankyou/?plan=${planId}`);
         }

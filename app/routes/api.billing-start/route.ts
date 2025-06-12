@@ -115,7 +115,7 @@ export const loader = async ({ request }: any) => {
     `;
 
     // const returnUrl = `https://admin.shopify.com/store/${storeName}/apps/${process.env.SHOPIFY_APP_NAME}/app/thankyou?plan=${selectedPlanId}`;
-    const returnPath = isSetting ? "app/plans" : "app/thankyou";
+    const returnPath = isSetting ? "app/planconfirmation" : "app/thankyou";
 const returnUrl = `https://admin.shopify.com/store/${storeName}/apps/${process.env.SHOPIFY_APP_NAME}/${returnPath}?plan=${selectedPlanId}`;
     const variables = {
       name: planConfig.name,

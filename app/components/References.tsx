@@ -10,6 +10,7 @@ import {
   InlineGrid,
   Box,
   Badge,
+  Link,
 } from '@shopify/polaris';
 
 export default function DonationFeatures() {
@@ -25,10 +26,12 @@ export default function DonationFeatures() {
         <Card roundedAbove="sm" padding="400">
           <BlockStack gap="300">
             <InlineStack align="start" gap="200">
+              <Link url="https://seen-adasaurus-6ad.notion.site/Onboarding-2-2109865caa9d80ff8734fb380faf0202" target='_blank'>
               {/* <Icon source={GlobeMajor} tone="base" /> */}
               <Text as="h3" variant="headingSm">
                 Add Donation Widget to Online Store
               </Text>
+                        </Link>
             </InlineStack>
             <Text as="p" variant="bodySm" tone="subdued">
               Add the DonateMe donation widget to your online store to
@@ -45,9 +48,11 @@ export default function DonationFeatures() {
           <BlockStack gap="300">
             <InlineStack align="start" gap="200">
               {/* <Icon source={StoreMajor} tone="base" /> */}
+               <Link url="https://seen-adasaurus-6ad.notion.site/Onboarding-2-2109865caa9d80ff8734fb380faf0202" target='_blank'>
               <Text as="h3" variant="headingSm">
                 Add Donation Tile on Shopify POS
               </Text>
+              </Link>
             </InlineStack>
             <Text as="p" variant="bodySm" tone="subdued">
               Allow customers to make a donation at the point of sale in
@@ -57,26 +62,30 @@ export default function DonationFeatures() {
               <Button variant="plain">Click here</Button>
             </div> */}
           </BlockStack>
+
         </Card>
 
         {/* Checkout Page Customization */}
         <Card roundedAbove="sm" padding="400">
           <BlockStack gap="300">
             <InlineStack align="start" gap="200">
+          <Link url="https://seen-adasaurus-6ad.notion.site/Onboarding-2-2109865caa9d80ff8734fb380faf0202" target='_blank'>
               {/* <Icon source={CheckoutMajor} tone="base" /> */}
               <Text as="h3" variant="headingSm">
                 Customization the  Checkout Page
               </Text>
-
+            </Link>
             </InlineStack>
             <Text as="p" variant="bodySm" tone="subdued">
               Customize the donation experience on your checkout page for
               maximum conversion.
+              Required Shopify Plus
             </Text>
             {/* <div>
               <Button variant="plain">Click here</Button>
             </div> */}
           </BlockStack>
+          
         </Card>
       </InlineGrid>
     </div>

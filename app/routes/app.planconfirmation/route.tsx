@@ -3,7 +3,7 @@ import { Page, Layout, Text, Button, Box } from "@shopify/polaris";
 import { useEffect, useRef, useState } from "react";
 // import Logo from "../../assets/images/donate-img.png"
 
-export default function ThankYou() {
+export default function planconfirmation() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(true);
@@ -41,57 +41,47 @@ export default function ThankYou() {
       hasFetched.current = true;
     }
   }, []);
+
+  console.log('sdfdsf', subscription)
   
   const handleOnboard = async () => {
-    console.log("sdfdsf");
-    
-    try {
-      await fetch(`/api/onboarding`, {
-        method: "POST",
-        credentials: "include",
-      });
-      navigate("/app/dashboard");
-    } catch (error) {
-      console.log("Error: ", error);
-    }
+    navigate('/app/plans')
+    // try {
+    //   await fetch(`/api/onboarding`, {
+    //     method: "POST",
+    //     credentials: "include",
+    //   });
+    //   navigate("/app/dashboard");
+    // } catch (error) {
+    //   console.log("Error: ", error);
+    // }
   };
+
   return (
     <Page>
       <Layout>
         <Layout.Section>
           <Box background="bg-surface" padding="500" borderRadius="300">
-            {/* Optional logo area */}
-            {/* 
-            <div className="mb-3">
-              <InlineStack align="center" blockAlign="center">
-                <Image
-                  source={Logo}
-                  alt="DonateMe Logo"
-                  width={80}
-                />
-              </InlineStack>
-            </div> 
-            */}
 
             <div className="text-center">
               <Text as="h1" variant="headingLg">
-                Thank You for Installing DonateMe!
+                Your plan has been updated!!!
               </Text>
 
-              <div className="my-3">
+              {/* <div className="my-3">
                 <Text as="p" variant="bodyMd">
                   Click <strong>Finish</strong> to complete the onboarding
                   process. You can restart onboarding anytime by navigating to{" "}
                   <em>DonateMe &gt; Settings &gt; Restart Onboarding</em>.
                 </Text>
-              </div>
+              </div> */}
 
               <Button
                 variant="primary"
                 onClick={handleOnboard}
                 loading={loading}
               >
-                Finish
+                Go to Plans
               </Button>
 
               {error && (
