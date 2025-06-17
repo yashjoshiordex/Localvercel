@@ -76,40 +76,38 @@ export default function ManageProducts() {
   //   );
   // };
 
-const fetchPage = async () => {
-  const page = pagination?.currentPage ?? 1;
-  await fetchData(
-    `/api/get-products?page=${page}&pageSize=10`,
-    (res: any) => {
-      setData(res);
-      const paginationData = res?.getProductsData?.data?.pagination;
-      if (paginationData) {
-        setPagination(paginationData);
-      }
-    },
-    setLoader
-  );
-};
+  const fetchPage = async () => {
+    const page = pagination?.currentPage ?? 1;
+    await fetchData(
+      `/api/get-products?page=${page}&pageSize=10`,
+      (res: any) => {
+        setData(res);
+        const paginationData = res?.getProductsData?.data?.pagination;
+        if (paginationData) {
+          setPagination(paginationData);
+        }
+      },
+      setLoader,
+    );
+  };
 
+  const handlePrevious = () => {
+    if (pagination?.prevPage !== null) {
+      setPagination((prev: any) => ({
+        ...prev,
+        currentPage: prev.currentPage - 1,
+      }));
+    }
+  };
 
-const handlePrevious = () => {
-  if (pagination?.prevPage !== null) {
-    setPagination((prev:any) => ({
-      ...prev,
-      currentPage: prev.currentPage - 1,
-    }));
-  }
-};
-
-const handleNext = () => {
-  if (pagination?.nextPage !== null) {
-    setPagination((prev:any) => ({
-      ...prev,
-      currentPage: prev.currentPage + 1,
-    }));
-  }
-};
-
+  const handleNext = () => {
+    if (pagination?.nextPage !== null) {
+      setPagination((prev: any) => ({
+        ...prev,
+        currentPage: prev.currentPage + 1,
+      }));
+    }
+  };
 
   const handleConfirmation = useCallback(async () => {
     //APi call to delete the product
@@ -120,7 +118,7 @@ const handleNext = () => {
 
       if (res.status === 200) {
         setActive(false);
-          fetchPage()
+        fetchPage();
       } else {
         console.error("Failed to delete product ", productId);
       }
@@ -130,15 +128,14 @@ const handleNext = () => {
   }, [productId]);
 
   useEffect(() => {
-    fetchPage()
+    fetchPage();
   }, []);
 
   useEffect(() => {
-  if (pagination?.currentPage) {
-    fetchPage();
-  }
-}, [pagination?.currentPage]);
-
+    if (pagination?.currentPage) {
+      fetchPage();
+    }
+  }, [pagination?.currentPage]);
 
   return (
     <Page>
@@ -153,8 +150,8 @@ const handleNext = () => {
               variant="primary"
               size="medium"
               onClick={() => {
-                
-                setModal({ ...modal, isOpen: true })}}
+                setModal({ ...modal, isOpen: true });
+              }}
             >
               Create
             </Button>
@@ -164,77 +161,80 @@ const handleNext = () => {
 
       {data?.getProductsData?.data?.products?.length ? (
         <>
-          {loader ? <Loader /> : 
-          <Card padding="200">
-            <DataTable
-              columnContentTypes={["text", "text", "text", "text"]}
-              headings={["Name", "Status", "Last Updated", "Actions"]}
-              rows={data?.getProductsData?.data?.products?.map(
-                (item: DonationProduct) => [
-                  item.title!,
-                  item.isDeleted ? "Inactive" : "Active",
-                  new Date(item.updatedAt).toLocaleString(),
-                  <>
-                    <Button
-                      onClick={() => {
-                        setProductId(item.shopifyProductId);
-                        setActive(true);
-                      }}
-                    >
-                      Delete
-                    </Button>
-                    <Button
-                      size="slim"
-                      onClick={() => {
-                        // setProductId(item.shopifyProductId);
-                        // fetchDataById(item.shopifyProductId);
-                        setModal({
-                          ...model,
-                          id: item.shopifyProductId,
-                          isOpen: true,
-                        });
-                      }}
-                    >
-                      Edit
-                    </Button>
-                  </>,
-                ],
+          {loader ? (
+            <Loader />
+          ) : (
+            <Card padding="200">
+              <DataTable
+                columnContentTypes={["text", "text", "text", "text"]}
+                headings={["Name", "Status", "Last Updated", "Actions"]}
+                rows={data?.getProductsData?.data?.products?.map(
+                  (item: DonationProduct) => [
+                    item.title!,
+                    item.isDeleted ? "Inactive" : "Active",
+                    new Date(item.updatedAt).toLocaleString(),
+                    <>
+                      <Button
+                        onClick={() => {
+                          setProductId(item.shopifyProductId);
+                          setActive(true);
+                        }}
+                      >
+                        Delete
+                      </Button>
+                      <Button
+                        size="slim"
+                        onClick={() => {
+                          // setProductId(item.shopifyProductId);
+                          // fetchDataById(item.shopifyProductId);
+                          setModal({
+                            ...model,
+                            id: item.shopifyProductId,
+                            isOpen: true,
+                          });
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    </>,
+                  ],
+                )}
+                increasedTableDensity
+              />
+              {pagination?.totalPages > 1 && (
+                <div
+                  style={{
+                    marginTop: "20px",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: "10px",
+                  }}
+                >
+                  {/* Previous/Next buttons */}
+                  <Pagination
+                    hasPrevious={pagination.hasPrevPage}
+                    hasNext={pagination.hasNextPage}
+                    onPrevious={() => {
+                      handlePrevious();
+                    }}
+                    onNext={() => {
+                      handleNext();
+                    }}
+                  />
+                </div>
               )}
-              increasedTableDensity
-            />
-            {pagination?.totalPages > 1 && (
-              <div
-                style={{
-                  marginTop: "20px",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  gap: "10px",
-                }}
-              >
-                {/* Previous/Next buttons */}
-                <Pagination
-                  hasPrevious={pagination.hasPrevPage}
-                  hasNext={pagination.hasNextPage}
-                  onPrevious={() => {
-                    handlePrevious();
-                  }}
-                  onNext={() => {
-                    handleNext();
-                  }}
-                />
-              </div>
-            )}
-          </Card>}
+            </Card>
+          )}
         </>
       ) : (
-        <NoProductFound />
+        data?.getProductsData?.data?.products?.length == 0 && <NoProductFound />
       )}
 
       <CreateProduct
         open={modal.isOpen}
         id={modal.id}
-        onClose={() => setModal({ ...modal, id:"",isOpen: false })}
+        onClose={() => setModal({ ...modal, id: "", isOpen: false })}
         fetchPage={fetchPage}
       />
 

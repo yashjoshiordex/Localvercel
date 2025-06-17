@@ -38,7 +38,7 @@ const NoProductFound = () => {
                         your customers.
                         <br />
                         You can create a donation product by clicking the button
-                        below.
+                        above.
                       </Text>
                     </div>
                   </div>

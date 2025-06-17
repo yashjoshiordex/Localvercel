@@ -3,7 +3,7 @@
 client_id = "a0b25aa84eb97a0a0c689abf5a6673aa"
 name = "Donate-Me"
 handle = "donate-me-1"
-application_url = "https://das-significance-rim-select.trycloudflare.com"
+application_url = "https://judge-burden-sas-triumph.trycloudflare.com"
 embedded = true
 
 [build]
@@ -15,15 +15,15 @@ api_version = "2025-04"
 
   [[webhooks.subscriptions]]
   topics = [ "orders/create" ]
-  uri = "/webhooks"
+  uri = "https://saying-railway-franchise-watches.trycloudflare.com/webhooks"
 
   [[webhooks.subscriptions]]
   topics = [ "app/scopes_update" ]
-  uri = "/webhooks/app/scopes_update"
+  uri = "https://saying-railway-franchise-watches.trycloudflare.com/webhooks/app/scopes_update"
 
   [[webhooks.subscriptions]]
   topics = [ "app/uninstalled" ]
-  uri = "/webhooks/app/uninstalled"
+  uri = "https://saying-railway-franchise-watches.trycloudflare.com/webhooks/app/uninstalled"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
@@ -31,9 +31,9 @@ scopes = "read_fulfillments,read_merchant_managed_fulfillment_orders,read_produc
 
 [auth]
 redirect_urls = [
-  "https://das-significance-rim-select.trycloudflare.com/auth/callback",
-  "https://das-significance-rim-select.trycloudflare.com/auth/shopify/callback",
-  "https://das-significance-rim-select.trycloudflare.com/api/auth/callback"
+  "https://judge-burden-sas-triumph.trycloudflare.com/auth/callback",
+  "https://judge-burden-sas-triumph.trycloudflare.com/auth/shopify/callback",
+  "https://judge-burden-sas-triumph.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

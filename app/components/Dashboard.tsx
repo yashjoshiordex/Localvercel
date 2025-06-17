@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, Button, Card, Page, Text, Layout } from "@shopify/polaris";
 import "../css/style.css";
 import { useNavigate } from "@remix-run/react";
+import Loader from "./Loader";
 
 interface Plan {
   _id: string;
@@ -49,7 +50,7 @@ const Dashboard = () => {
 
   return (
     <>
-      <Page>
+     {!loader ? <Page>
         <Layout>
           <Layout.Section>
             <Box>
@@ -94,7 +95,7 @@ const Dashboard = () => {
             </Box>
           </Layout.Section>
         </Layout>
-      </Page>
+      </Page> : <Loader />}
     </>
   );
 };

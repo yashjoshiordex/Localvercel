@@ -26,7 +26,7 @@ export default function DonationFeatures() {
         <Card roundedAbove="sm" padding="400">
           <BlockStack gap="300">
             <InlineStack align="start" gap="200">
-              <Link url="https://seen-adasaurus-6ad.notion.site/Onboarding-2-2109865caa9d80ff8734fb380faf0202" target='_blank'>
+              <Link url="https://seen-adasaurus-6ad.notion.site/Using-the-DonateMe-Widget-2109865caa9d800bb218cf16392ab5cf" target='_blank'>
               {/* <Icon source={GlobeMajor} tone="base" /> */}
               <Text as="h3" variant="headingSm">
                 Add Donation Widget to Online Store
@@ -48,7 +48,7 @@ export default function DonationFeatures() {
           <BlockStack gap="300">
             <InlineStack align="start" gap="200">
               {/* <Icon source={StoreMajor} tone="base" /> */}
-               <Link url="https://seen-adasaurus-6ad.notion.site/Onboarding-2-2109865caa9d80ff8734fb380faf0202" target='_blank'>
+               <Link url="https://seen-adasaurus-6ad.notion.site/DonateMe-and-Shopify-POS-2109865caa9d805cae02d14c2d1498d4" target='_blank'>
               <Text as="h3" variant="headingSm">
                 Add Donation Tile on Shopify POS
               </Text>
@@ -69,7 +69,7 @@ export default function DonationFeatures() {
         <Card roundedAbove="sm" padding="400">
           <BlockStack gap="300">
             <InlineStack align="start" gap="200">
-          <Link url="https://seen-adasaurus-6ad.notion.site/Onboarding-2-2109865caa9d80ff8734fb380faf0202" target='_blank'>
+          <Link url="https://seen-adasaurus-6ad.notion.site/Using-DonateMe-on-the-Checkout-Page-2109865caa9d80a680c9d2769c714fb0" target='_blank'>
               {/* <Icon source={CheckoutMajor} tone="base" /> */}
               <Text as="h3" variant="headingSm">
                 Customization the  Checkout Page

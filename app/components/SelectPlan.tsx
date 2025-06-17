@@ -52,11 +52,11 @@ export default function SelectPlan({ nextStep }: IProps) {
   const app: any = useAppBridge();
   const [plans, setPlans] = useState<any>();
   const [seletedPlan, setSelectedPlan] = useState<{
-    planId:string,
-    planPrice:number|null
+    planId: string;
+    planPrice: number | null;
   }>({
-    planId:"",
-    planPrice: null
+    planId: "",
+    planPrice: null,
   });
   const [currentPlan, setcurrentPlan] = useState<Subscription>();
   const [loader, setLoader] = useState<boolean>(false);
@@ -68,28 +68,31 @@ export default function SelectPlan({ nextStep }: IProps) {
   const chargeId = searchParams.get("charge_id");
   const planId = searchParams.get("plan") || seletedPlan;
 
-   const fetchPlans = async () => {
-      try {
-        const response = await fetch("/api/plans");
-        const data = await response.json();
-        if (data?.plans) {
-          setPlans(data.plans);
-          setcurrentPlan(data?.currentSubscription);
-          setLoader(false);
-        } else {
-          console.log("somthing went wrong");
-        }
-      } catch {
+  const fetchPlans = async () => {
+    try {
+      const response = await fetch("/api/plans");
+      const data = await response.json();
+      if (data?.plans) {
+        setPlans(
+          data.plans.sort((a: plans, b: plans) => {
+            return a.price - b.price; // both are either popular or not, maintain original order
+          }),
+        );
+        setcurrentPlan(data?.currentSubscription);
         setLoader(false);
-        console.error("somthing went wrong");
+      } else {
+        console.log("somthing went wrong");
       }
-    };
-
+    } catch {
+      setLoader(false);
+      console.error("somthing went wrong");
+    }
+  };
 
   const fetchSubscriptionDetails = async () => {
     try {
       const response = await fetch(
-         `/api/get-subscription?charge_id=${chargeId}&plan=${planId}`,
+        `/api/get-subscription?charge_id=${chargeId}&plan=${planId}`,
       );
       const data = await response.json();
 
@@ -105,19 +108,20 @@ export default function SelectPlan({ nextStep }: IProps) {
     }
   };
 
-  const handleSubmit = async (planId: string) => {    
+  const handleSubmit = async (planId: string) => {
     try {
       setLoader(true);
       setBtnLoader({ id: planId, toggle: true });
 
-      const url = `/api/billing-start/?plan=${planId}&isSetting=${isProductPage ? true : false}`
+      const url = `/api/billing-start/?plan=${planId}&isSetting=${isProductPage ? true : false}`;
       const response = await fetch(url);
       const data = await response.json();
 
       const confirmationUrl = data?.confirmationUrl;
       // Navigate to Thank you page if it's a free plan
       if (data?.plan?.isFree) {
-        setBtnLoader({...btnLoader, toggle:false})
+        setLoader(true);
+        setBtnLoader({ ...btnLoader, toggle: false });
         if (isProductPage) {
           return navigate(`/app/planconfirmation/?plan=${planId}`);
           // fetchSubscriptionDetails(); // Call fetchData only in product page
@@ -168,89 +172,102 @@ export default function SelectPlan({ nextStep }: IProps) {
 
   useEffect(() => {
     setLoader(true);
-    fetchPlans()
-    !(seletedPlan.planPrice === null) && fetchSubscriptionDetails()
+    fetchPlans();
+    !(seletedPlan.planPrice === null) && fetchSubscriptionDetails();
   }, []);
 
   return (
-    <Page>
-      <Layout>
-        <Layout.Section>
-          <Box>
-            <div className="d-flex mb-3 justify-content-between">
-              <Text variant="headingLg" as="h2">
-                Select Plan
-              </Text>
-              {!isProductPage && (
-                <div>
-                  <Button
-                    variant="primary"
-                    onClick={() => handleSubmit(plans[0]?._id)}
-                    disabled={loader}
-                  >
-                    Continue Without Changes
-                  </Button>
-                </div>
-              )}
-            </div>
-          </Box>
-
-          {loader ? (
-            <Loader />
-          ) : (
-            <InlineGrid columns={{ xs: 1, sm: 2, md: 3, lg: 4 }} gap="400">
-              {plans?.map((plan: any, id: any) => (
-                <Card key={plan._id} roundedAbove="sm" padding="400">
-                  <BlockStack gap="300">
-                    <Text variant="headingMd" as="h2">
-                      {plan.name}
-                    </Text>
-
-                    <Text variant="headingMd" as="h2">
-                      {plan.price}
-                      <Text as="span" tone="subdued" variant="bodyMd">
-                        /month
-                      </Text>
-                    </Text>
-
-                    <Text as="p" variant="bodyMd" fontWeight="bold">
-                      {plan.note}
-                    </Text>
-                    <Text tone="subdued" as="p" variant="bodyMd">
-                      {plan.subNote}
-                    </Text>
-                    <Box>
-                      <ul className="mb-5">
-                        {plan.features.map((feature: any, index: any) => (
-                          <li key={index}>
-                            <Text as="p" variant="bodyMd">
-                              {feature}
-                            </Text>
-                          </li>
-                        ))}
-                      </ul>
-                    </Box>
-                    <div className="bottom-button ">
+    <>
+      {loader || btnLoader.toggle ? (
+        <Loader />
+      ) : (
+        <Page>
+          <Layout>
+            <Layout.Section>
+              <Box>
+                <div className="d-flex mb-3 justify-content-between">
+                  <Text variant="headingLg" as="h2">
+                    Select Plan
+                  </Text>
+                  {!isProductPage && (
+                    <div>
                       <Button
                         variant="primary"
-                        fullWidth
-                        onClick={() => {
-                          plan.price === 0 && setSelectedPlan({ planId: plan._id, planPrice: null });
-                          handleSubmit(plan._id)}}
-                        // disabled={plan.price === 0 || loader}
-                        disabled={plan._id === currentPlan?.planId!}
-                        loading={btnLoader.id === plan._id && btnLoader.toggle}
+                        onClick={() => handleSubmit(plans[0]?._id)}
+                        disabled={loader}
                       >
-                        Select
+                        Continue Without Changes
                       </Button>
                     </div>
-                  </BlockStack>
-                </Card>
-              ))}
-            </InlineGrid>
-          )}
-        </Layout.Section>
-      </Layout>
-    </Page>
+                  )}
+                </div>
+              </Box>
+
+              <InlineGrid columns={{ xs: 1, sm: 2, md: 3, lg: 4 }} gap="400">
+                {plans?.map((plan: any, id: any) => (
+                  <Card key={plan._id} roundedAbove="sm" padding="400">
+                    <BlockStack gap="300">
+                      <Text variant="headingMd" as="h2">
+                        {plan.name}
+                      </Text>
+
+                      <Text variant="headingMd" as="h2">
+                        ${plan.price}
+                        <Text as="span" tone="subdued" variant="bodyMd">
+                          /month
+                        </Text>
+                      </Text>
+
+                      <Text as="p" variant="bodyMd" fontWeight="bold">
+                        {plan.note}
+                      </Text>
+                      <Text tone="subdued" as="p" variant="bodyMd">
+                        {plan.subNote}
+                      </Text>
+                      <Box>
+                        <ul className="mb-5">
+                          {plan.features.map((feature: any, index: any) => (
+                            <li key={index}>
+                              <Text as="p" variant="bodyMd">
+                                {feature}
+                              </Text>
+                            </li>
+                          ))}
+                        </ul>
+                      </Box>
+                      <div className="bottom-button ">
+                        <Button
+                          variant="primary"
+                          fullWidth
+                          onClick={() => {
+                            plan.price === 0 &&
+                              setSelectedPlan({
+                                planId: plan._id,
+                                planPrice: null,
+                              });
+                            handleSubmit(plan._id);
+                          }}
+                          // disabled={plan.price === 0 || loader}
+                          disabled={
+                            currentPlan?.planId
+                              ? plan._id === currentPlan?.planId!
+                              : plan.price === 0
+                          }
+                          loading={
+                            btnLoader.id === plan._id && btnLoader.toggle
+                          }
+                        >
+                          Select
+                        </Button>
+                      </div>
+                    </BlockStack>
+                  </Card>
+                ))}
+              </InlineGrid>
+            </Layout.Section>
+          </Layout>
+        </Page>
+      )}
+    </>
   );
 }
