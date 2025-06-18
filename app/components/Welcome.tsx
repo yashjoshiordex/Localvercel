@@ -27,7 +27,7 @@ export default function Welcome() {
       </Text>
       <Box paddingBlock="400">
         <Text variant="bodyMd" as="p">
-          DonateMe for Donations is a full-featured product customisation and upselling tool
+          DonateMe for Donations is a full-featured product customization and upselling tool
           specifically designed for charities, nonprofits and businesses looking to add a
           custom price option to their store.
         </Text>
