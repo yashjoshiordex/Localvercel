@@ -17,7 +17,7 @@ export default function Productcreated() {
         </div>
         <Box>
           <div className="text-center">
-            <Text variant="bodyMd" as="p" fontWeight="bold">Product Created Sucessfully!</Text>
+            <Text variant="bodyMd" as="p" fontWeight="bold">Product Created Successfully!</Text>
           </div>
           <div className="text-center">
             <Text variant="bodyMd" as="p">Click Next to continue</Text>
