@@ -92,7 +92,7 @@ export default function ProductOnborading({
             alignment="center"
             fontWeight="bold"
           >
-            Crearte A Donation Product
+            Create A Donation Product
           </Text>
 
           <div className="text-center my-2">
