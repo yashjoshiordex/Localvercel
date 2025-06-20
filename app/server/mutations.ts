@@ -29,6 +29,7 @@ export const VARIANT_UPDATE_MUTATION = `
       productVariants {
         id
         title
+        taxable
       }
       userErrors {
         field
@@ -159,3 +160,137 @@ export const CANCEL_SUBSCRIPTION_MUTATION = `
     }
   }
 `;
+
+// export const CREATE_METAFIELD_DEFINITION_MUTATION = `
+//   mutation CreateMetafieldDefinition($definition: MetafieldDefinitionInput!) {
+//     metafieldDefinitionCreate(definition: $definition) {
+//       createdDefinition {
+//         id
+//         name
+//         namespace
+//         key
+//       }
+//       userErrors {
+//         field
+//         message
+//       }
+//     }
+//   }
+// `;
+
+// export const SET_PRODUCT_METAFIELD_MUTATION = `
+//   mutation MetafieldsSet($metafields: [MetafieldsSetInput!]!) {
+//     metafieldsSet(metafields: $metafields) {
+//       metafields {
+//         id
+//         key
+//         namespace
+//         value
+//         type
+//         ownerType
+//       }
+//       userErrors {
+//         field
+//         message
+//       }
+//     }
+//   }
+// `;
+
+export const CREATE_METAFIELD_DEFINITION_MUTATION = `
+  mutation CreateMetafieldDefinition($definition: MetafieldDefinitionInput!) {
+    metafieldDefinitionCreate(definition: $definition) {
+      createdDefinition {
+        id
+        name
+        namespace
+        key
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+export const SET_PRODUCT_METAFIELD_MUTATION = `
+  mutation MetafieldsSet($metafields: [MetafieldsSetInput!]!) {
+    metafieldsSet(metafields: $metafields) {
+      metafields {
+        id
+        key
+        namespace
+        value
+        type
+        ownerType
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+export const INVENTORY_ITEM_UPDATE_MUTATION = `
+  mutation InventoryItemUpdate($id: ID!, $input: InventoryItemInput!) {
+    inventoryItemUpdate(id: $id, input: $input) {
+      inventoryItem {
+        id
+        sku
+        requiresShipping
+        tracked
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;
+
+export const GET_INVENTORY_ITEM_ID = `
+  query GetInventoryItemId($variantId: ID!) {
+    productVariant(id: $variantId) {
+      inventoryItem {
+        id
+        sku
+        requiresShipping
+      }
+    }
+  }
+`;
+
+export const PRODUCT_QUERY = `
+    query getProducts($first: Int!, $after: String) {
+      products(first: $first, after: $after, query: "status:active") {
+        edges {
+          node {
+            id
+            status
+          }
+          cursor
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+      }
+    }
+  `;
+
+export  const  ARCHIVE_MUTATION = `
+    mutation productUpdate($input: ProductInput!) {
+      productUpdate(input: $input) {
+        product {
+          id
+          status
+        }
+        userErrors {
+          field
+          message
+        }
+      }
+    }
+  `;

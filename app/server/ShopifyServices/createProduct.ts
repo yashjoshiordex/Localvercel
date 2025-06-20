@@ -1,5 +1,6 @@
 import { CREATE_PRODUCT_MUTATION } from "app/server/mutations";
 import { publishProductToOnlineStore } from "./publishProduct";
+import { setProductMetafield } from "./metafieldService";
 
 export async function createShopifyProduct(admin: any, title: string, description: string) {
     const response = await admin.graphql(CREATE_PRODUCT_MUTATION, {

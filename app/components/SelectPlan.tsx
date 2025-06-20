@@ -52,11 +52,11 @@ export default function SelectPlan({ nextStep }: IProps) {
   const app: any = useAppBridge();
   const [plans, setPlans] = useState<any>();
   const [seletedPlan, setSelectedPlan] = useState<{
-    planId: string;
-    planPrice: number | null;
+    planId: string,
+    planPrice: number | null
   }>({
     planId: "",
-    planPrice: null,
+    planPrice: null
   });
   const [currentPlan, setcurrentPlan] = useState<Subscription>();
   const [loader, setLoader] = useState<boolean>(false);
@@ -75,7 +75,7 @@ export default function SelectPlan({ nextStep }: IProps) {
       if (data?.plans) {
         setPlans(
           data.plans.sort((a: plans, b: plans) => {
-            return a.price - b.price; // both are either popular or not, maintain original order
+            return a.price - b.price;
           }),
         );
         setcurrentPlan(data?.currentSubscription);
@@ -88,6 +88,7 @@ export default function SelectPlan({ nextStep }: IProps) {
       console.error("somthing went wrong");
     }
   };
+
 
   const fetchSubscriptionDetails = async () => {
     try {
@@ -113,7 +114,7 @@ export default function SelectPlan({ nextStep }: IProps) {
       setLoader(true);
       setBtnLoader({ id: planId, toggle: true });
 
-      const url = `/api/billing-start/?plan=${planId}&isSetting=${isProductPage ? true : false}`;
+      const url = `/api/billing-start/?plan=${planId}&isSetting=${isProductPage ? true : false}`
       const response = await fetch(url);
       const data = await response.json();
 
@@ -203,6 +204,7 @@ export default function SelectPlan({ nextStep }: IProps) {
                 </div>
               </Box>
 
+
               <InlineGrid columns={{ xs: 1, sm: 2, md: 3, lg: 4 }} gap="400">
                 {plans?.map((plan: any, id: any) => (
                   <Card key={plan._id} roundedAbove="sm" padding="400">
@@ -212,7 +214,7 @@ export default function SelectPlan({ nextStep }: IProps) {
                       </Text>
 
                       <Text variant="headingMd" as="h2">
-                        ${plan.price}
+                        {plan.price}
                         <Text as="span" tone="subdued" variant="bodyMd">
                           /month
                         </Text>
@@ -240,22 +242,14 @@ export default function SelectPlan({ nextStep }: IProps) {
                           variant="primary"
                           fullWidth
                           onClick={() => {
-                            plan.price === 0 &&
-                              setSelectedPlan({
-                                planId: plan._id,
-                                planPrice: null,
-                              });
-                            handleSubmit(plan._id);
+                            plan.price === 0 && setSelectedPlan({ planId: plan._id, planPrice: null });
+                            handleSubmit(plan._id)
                           }}
                           // disabled={plan.price === 0 || loader}
-                          disabled={
-                            currentPlan?.planId
-                              ? plan._id === currentPlan?.planId!
-                              : plan.price === 0
-                          }
-                          loading={
-                            btnLoader.id === plan._id && btnLoader.toggle
-                          }
+                          disabled={currentPlan?.planId
+                            ? plan._id === currentPlan?.planId!
+                            : plan.price === 0}
+                          loading={btnLoader.id === plan._id && btnLoader.toggle}
                         >
                           Select
                         </Button>

@@ -1,19 +1,18 @@
 import { UPDATE_PRODUCT_MUTATION } from "app/server/mutations";
 import { updateProductVariant } from "app/server/ShopifyServices/updateVariant";
 import { logger } from "app/server/utils/logger";
-import { authenticate } from "app/shopify.server";
+import { withAuth } from "app/server/utils/withAuth"; // <-- Import withAuth
 import { updateProductInDb } from "app/server/controllers/product.Controller";
+import { setProductMetafield } from "app/server/ShopifyServices/metafieldService";
 
 // API endpoint for updating product
-export const action = async ({ request }: any) => {
-  const { admin } = await authenticate.admin(request);
-
+export const action = async ({ request }: any) =>
+  withAuth(request, async (admin, session) => {
   // Get form data
   const body = await request.json();
 
-  const { productId, title, description, vendor, productType, sku, price, minimumDonationAmount, presetValue,goalAmount } = body;
 
-  console.log("action function called with body:", presetValue);
+  const { productId, title, description, vendor, productType, sku, price, minimumDonationAmount, presetValue,goalAmount } = body;
 
   logger.info("Received product update request:", {
     productId, title, vendor, productType, sku, price, minimumDonationAmount
@@ -131,9 +130,24 @@ export const action = async ({ request }: any) => {
       }
     }
 
+    const metafieldResult = await setProductMetafield(admin, productId, presetValue);
+    if (!metafieldResult.success) {
+      logger.error("Error setting metafield:", metafieldResult.errors);
+      console.log("Error setting metafield:", metafieldResult.errors);
+
+      return new Response(
+        JSON.stringify({ error: "Failed to update metafield presetValue" }),
+        {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+    }
+    logger.info("Metafield presetValue updated successfully");
+
     // --- MongoDB Update ---
     try {
-      await updateProductInDb({ productId, title, description, sku, price, minimumDonationAmount, presetValue,goalAmount });
+      await updateProductInDb({ productId, title, description, sku, price, minimumDonationAmount, presetValue, goalAmount });
       logger.info("MongoDB product updated successfully:", productId);
     } catch (mongoError) {
       logger.error("MongoDB update error:", mongoError instanceof Error ? mongoError.message : mongoError);
@@ -150,21 +164,12 @@ export const action = async ({ request }: any) => {
     if (error instanceof Error && error.stack) {
       logger.error("Stack trace:", error.stack);
     }
-    if (error.status === 401) {
       return new Response(
-        JSON.stringify({ error: "Unauthorized access. Please log in again." }),
+        JSON.stringify({ error: error instanceof Error ? error.message : String(error) }),
         {
-          status: 401,
+          status: 500,
           headers: { "Content-Type": "application/json" },
         }
       );
     }
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : String(error) }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-  }
-};
+  });

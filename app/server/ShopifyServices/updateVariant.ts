@@ -6,15 +6,17 @@ export async function updateProductVariant(
     variantId: string,
     price: number,
     sku: string,
-    minDonation?: number
+    minDonation?: number,
+    applySalesTax: boolean = false // Default to true, can be overridden
 ) {
     const variantInput: Record<string, any> = {
         id: variantId,
         price,
+        taxable: applySalesTax
     };
 
     if (sku) {
-        variantInput.inventoryItem = { sku };
+        variantInput.inventoryItem = { sku }; // Set requiresShipping to false for digital products
     }
 
     if (minDonation != null) {
@@ -36,5 +38,6 @@ export async function updateProductVariant(
     });
 
     const result = await response.json();
+    console.log(JSON.stringify(result, null, 2));
     return result.data?.productVariantsBulkUpdate?.userErrors || [];
 }

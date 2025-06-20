@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, Button, Card, Page, Text, Layout } from "@shopify/polaris";
 import "../css/style.css";
-import { useNavigate } from "@remix-run/react";
+import { Link, useNavigate } from "@remix-run/react";
 import Loader from "./Loader";
 
 interface Plan {
@@ -15,42 +15,41 @@ interface Plan {
 }
 const Dashboard = () => {
   const navigate = useNavigate();
-    const [currentPlan, setCurrentPlanPlans] = useState<Plan>();
-    const [loader, setLoader] = useState<boolean>(false);
+  const [currentPlan, setCurrentPlanPlans] = useState<Plan>();
+  const [loader, setLoader] = useState<boolean>(false);
 
   useEffect(() => {
-      setLoader(true);
-      const fetchPlans = async () => {
-        try {
-          const response = await fetch("/api/dashboard");
-          await fetch("/api/onboarding",{
-            method:"POST"
-          })
-          if (!response.ok) {
-            throw new Error(`Server error: ${response.status}`);
-          }
-  
-          const data = await response.json();
-  
-          if (data) {
-            console.log("Received plans:", data.plan);
-            setCurrentPlanPlans(data.plan);
-          } else {
-            console.error("Unexpected response structure: 'plans' not found.");
-          }
-        } catch (error) {
-          console.error("Failed to fetch plans:", error);
-        } finally {
-          setLoader(false);
+    setLoader(true);
+    const fetchPlans = async () => {
+      try {
+        const response = await fetch("/api/dashboard");
+        await fetch("/api/onboarding", {
+          method: "POST",
+        });
+        if (!response.ok) {
+          throw new Error(`Server error: ${response.status}`);
         }
-      };
-      fetchPlans();
-      
-    }, []);
+
+        const data = await response.json();
+
+        if (data) {
+          console.log("Received plans:", data.plan);
+          setCurrentPlanPlans(data.plan);
+        } else {
+          console.error("Unexpected response structure: 'plans' not found.");
+        }
+      } catch (error) {
+        console.error("Failed to fetch plans:", error);
+      } finally {
+        setLoader(false);
+      }
+    };
+    fetchPlans();
+  }, []);
 
   return (
     <>
-     {!loader ? <Page>
+      {!loader ? <Page>
         <Layout>
           <Layout.Section>
             <Box>
@@ -66,7 +65,12 @@ const Dashboard = () => {
                 </Text> */}
 
                 <div className="mt-1">
-                  <Button variant="primary" onClick={()=> navigate("/app/plans")}>Change Plan</Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => navigate("/app/plans")}
+                  >
+                    Change Plan
+                  </Button>
                 </div>
               </Card>
 
@@ -93,6 +97,9 @@ const Dashboard = () => {
                 </Card>
               </div>
             </Box>
+            <Link to="/app/archive">
+              🗃️ Archive All Products
+            </Link>
           </Layout.Section>
         </Layout>
       </Page> : <Loader />}

@@ -29,6 +29,7 @@ export default function App() {
         {/* <Link to="/app/additional">Additional page</Link> */}
         <Link to="/app/manage">Manage Product</Link>
         <Link to="/app/plans">Change Plan</Link>
+        <Link to="/app/settings">Setting</Link>
         {/* <Link to="/app/onboarding">Onboarding page</Link>
         <Link to="/app/sub">Test subscription page</Link>
         <Link to="/app/subscription-plans">Test plans page</Link> */}

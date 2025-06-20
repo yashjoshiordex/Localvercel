@@ -1,17 +1,18 @@
 // routes/api/product.ts
 import type { ActionFunctionArgs } from "@remix-run/node";
 import { SessionModel } from "app/server/models/mongoose-session-model";
-import {
-  validateProductInput,
-} from "app/server/validations/productSchema";
+import { validateProductInput } from "app/server/validations/productSchema";
 import { createShopifyProduct } from "app/server/ShopifyServices/createProduct";
-import { Product } from "app/server/models/Product";
 import { updateProductVariant } from "app/server/ShopifyServices/updateVariant";
 import { withAuth } from "app/server/utils/withAuth";
 import { Session } from "@shopify/shopify-app-remix/server";
 import { AdminApiContextWithoutRest } from "node_modules/@shopify/shopify-app-remix/dist/ts/server/clients";
 import { logger } from "app/server/utils/logger";
 import { createProductInDb } from "app/server/controllers/product.Controller";
+import { createMetafieldDefinition } from "app/server/ShopifyServices/createMetafieldDefinition";
+import StoreConfiguration from "app/server/models/storeConfiguration";
+import { GET_INVENTORY_ITEM_ID } from "app/server/mutations";
+import { updateInventoryItem } from "app/server/ShopifyServices/updateInventoryItem";
 
 // ────────────────────────────────────────────────────────────────────────────────
 // Types
@@ -28,11 +29,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   return withAuth(
     request,
     /* 1️⃣  Authenticate request (handled by withAuth) */
-    async (admin: AdminApiContextWithoutRest, session: Session) => {
+    async (admin: AdminApiContextWithoutRest | any, session: Session) => {
       /* 2️⃣  Parse & validate body ------------------------------------------------ */
       const body = await request.json();
       const parsed = validateProductInput(body);
-      console.log("Parsed product input:", body.goalAmount);
+      console.log("Parsed product input:", body.goalAmount); // should be present
 
       if (!parsed.success) {
         logger.error("Product input validation failed", { error: parsed.error });
@@ -42,8 +43,20 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         });
       }
 
-      const { title, description, sku,goalAmount } = parsed.data;
+      const { title, description, sku, goalAmount } = parsed.data;
       const shopDomain: string = session.shop;
+
+      const storeConfig = await StoreConfiguration.findOne({ shop: shopDomain }).lean();
+      if (!storeConfig) {
+        logger.error("Store configuration not found", { shop: shopDomain });
+        return new Response(
+          JSON.stringify({ error: "Store configuration not found" }),
+          { status: 404, headers: { "Content-Type": "application/json" } },
+        );
+      }
+
+      const { requireShipping, applySalesTax } = storeConfig;
+
 
       /* 3️⃣  Create product in Shopify ------------------------------------------- */
       const { product, variantId, errors: createErrors }: CreateProductResult =
@@ -57,26 +70,66 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         });
       }
 
-      logger.info("Product created in Shopify", { productId: product.id, shop: shopDomain });
+      const response = await admin.graphql(GET_INVENTORY_ITEM_ID, {
+        variables: { variantId },
+      });
 
+      const data = await response.json(); // ✅ Parse the body
+      console.log("Parsed inventory data:", data);
+
+      // Now access the inventoryItem ID
+      const inventoryItemId = data?.data?.productVariant?.inventoryItem?.id;
+      console.log("inventoryItemId:", inventoryItemId);
+
+      const inventoryErrors = await updateInventoryItem(admin, inventoryItemId, {
+        sku,
+        requiresShipping: requireShipping,
+        tracked: true,
+      });
+      if (inventoryErrors.length > 0) {
+        console.log("Inventory update errors:", inventoryErrors);
+        logger.error("Inventory update errors", { errors: inventoryErrors });
+      } else {
+        logger.info("Inventory item updated successfully", { inventoryItemId });
+      }
+      logger.info("Product created in Shopify", { productId: product.id, shop: shopDomain });
 
       const variantErrors: VariantUpdateErrors = await updateProductVariant(
         admin,
         product.id,
         variantId,
-        body.price ?? 10,   // ← your price logic from earlier
-        sku,          // optional
-        body.minDonation  // optional metafield; omit or set undefined to skip
+        body.price ?? 10,
+        sku,
+        body.minDonation,
+        applySalesTax
       );
-
       if (variantErrors?.length > 0) {
         console.log("Variant update errors:", variantErrors);
         logger.error("Variant update errors", { errors: variantErrors });
       } else {
         console.log("Variant update errors:", variantErrors);
-
         logger.info("Product variant updated", { productId: product.id, variantId });
       }
+
+      const metafieldResponse = await createMetafieldDefinition(admin, {
+        name: "Preset Value",
+        namespace: "donate",
+        key: "preset_value",
+        type: "list.number_integer",
+        ownerType: "PRODUCT",
+      });
+
+      if (!metafieldResponse.success) {
+        logger.warn("⚠️ Failed to create metafield definition", {
+          errors: metafieldResponse.errors,
+        });
+      } else {
+        logger.info("✅ Metafield definition created", {
+          id: metafieldResponse.definition?.id,
+          name: metafieldResponse.definition?.name,
+        });
+      }
+
 
       /* 5️⃣  Persist to MongoDB --------------------------------------------------- */
       const shopSession = await SessionModel.findOne({ shop: shopDomain });
