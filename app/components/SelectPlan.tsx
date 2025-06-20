@@ -214,7 +214,7 @@ export default function SelectPlan({ nextStep }: IProps) {
                       </Text>
 
                       <Text variant="headingMd" as="h2">
-                        {plan.price}
+                        ${plan.price}
                         <Text as="span" tone="subdued" variant="bodyMd">
                           /month
                         </Text>
