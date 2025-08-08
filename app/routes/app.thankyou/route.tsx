@@ -15,18 +15,19 @@ export default function ThankYou() {
 
   const hasFetched = useRef(false);
 
-    const [submitting, setSubmitting] = useState(false);
+    // const [submitting, setSubmitting] = useState(false);
 
 const handleOnboard = async () => {
-  setSubmitting(true);
+  // setSubmitting(true);
   try {
     // await fetch(`/api/onboarding`, { method: "POST", credentials: "include" });
     navigate("/app/routedashboard");
   } catch (error) {
     console.log("Error: ", error);
-  } finally {
-    setSubmitting(false);
-  }
+  } 
+  // finally {
+  //   setSubmitting(false);
+  // }
 };
   const fetchSubscriptionDetails = async () => {
   
@@ -81,6 +82,20 @@ const handleOnboard = async () => {
               <Text as="h1" variant="headingLg">
                 Thank You for Installing DonateMe!
               </Text>
+                
+                {/* Subscription Success Message */}
+                {subscription && (
+                  <Box 
+                    background="bg-surface-success" 
+                    padding="400" 
+                    borderRadius="200"
+                  >
+                    <Text as="p" variant="bodyMd" tone="success">
+                      {subscription.plan?.name || 'Your plan'} has been activated successfully!
+                    </Text>
+                  </Box>
+                )}
+                
 
               <div className="my-3">
                 <Text as="p" variant="bodyMd">

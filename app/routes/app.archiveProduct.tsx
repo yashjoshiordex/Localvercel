@@ -16,7 +16,7 @@ export default function ArchivePage() {
     setResponse(null);
 
     try {
-      const res = await fetch("/api/archive", {
+      const res = await fetch("/api/archiveProduct", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -46,12 +46,12 @@ export default function ArchivePage() {
           <Text as="h2" variant="headingMd">
             Archive All Products
           </Text>
-          
+
           <div style={{ marginTop: "1rem", marginBottom: "1rem" }}>
             <Text as="p" variant="bodyMd" tone="subdued">
-              This action will archive all active products in your Shopify store 
-              and mark them as deleted in the database. This action cannot be undone 
-              from this interface.
+              This action will archive all active products in your Shopify store
+              and mark them as deleted in the database. This action cannot be
+              undone from this interface.
             </Text>
           </div>
 
@@ -80,9 +80,7 @@ export default function ArchivePage() {
           {response && response.error && (
             <div style={{ marginTop: "1rem" }}>
               <Banner tone="critical">
-                <Text as="p">
-                  ❌ Error: {response.error}
-                </Text>
+                <Text as="p">❌ Error: {response.error}</Text>
               </Banner>
             </div>
           )}

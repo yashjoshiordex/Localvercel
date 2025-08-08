@@ -19,16 +19,7 @@ export async function updateProductVariant(
         variantInput.inventoryItem = { sku }; // Set requiresShipping to false for digital products
     }
 
-    if (minDonation != null) {
-        variantInput.metafields = [
-            {
-                namespace: "donation",
-                key: "minimum_value",
-                type: "number_integer",   // Shopify expects the metafield type
-                value: String(minDonation),
-            },
-        ];
-    }
+  
 
     const response = await admin.graphql(VARIANT_UPDATE_MUTATION, {
         variables: {

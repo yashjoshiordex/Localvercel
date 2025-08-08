@@ -11,8 +11,14 @@ const orderSchema = new mongoose.Schema({
     variantId: String,
     quantity: Number,
     price: String,
-    vendor: String
+    vendor: String,
+    productName:String
   }],
+  clientDetails: {
+    id: {type: String, default: null},
+    fullName: {type: String, default: null},
+    email: {type: String, default: null},
+  },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

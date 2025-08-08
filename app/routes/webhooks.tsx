@@ -1,7 +1,7 @@
 import { ActionFunction } from "@shopify/remix-oxygen";
-import shopify, { authenticate } from "../shopify.server"; // path should be correct
+import  { authenticate } from "../shopify.server"; // path should be correct
 import crypto from "crypto";
-import { SessionModel } from "app/server/models/mongoose-session-model";
+// import { SessionModel } from "app/server/models/mongoose-session-model";
 import { handleOrderFulfillment } from "app/server/services/fullfilment.service";
 import { logger } from "app/server/utils/logger";
 

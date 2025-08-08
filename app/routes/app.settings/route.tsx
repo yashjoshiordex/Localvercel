@@ -1,4 +1,4 @@
-import { StoreSettings } from "app/components/StoreSettings";
+import  StoreSettings  from "app/components/StoreSettings";
 
 export default function Settings() {
   return <StoreSettings />;

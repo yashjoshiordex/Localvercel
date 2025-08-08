@@ -3,6 +3,7 @@ export interface IStoreSettings {
     shop: string;
     postPurchaseProduct: string | null;
     autoFulfillOrders: boolean;
+    tagValue: string | null;
     requireShipping: boolean;
     applySalesTax: boolean;
     createdAt: Date;

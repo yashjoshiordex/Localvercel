@@ -1,5 +1,3 @@
-import { json } from "@remix-run/node";
-import { SessionModel } from "app/server/models/mongoose-session-model";
 import { getPlanById } from "app/server/services/plan.service";
 import { authenticate } from "app/shopify.server";
 import { logger } from "app/server/utils/logger";
@@ -115,26 +113,63 @@ export const loader = async ({ request }: any) => {
     `;
 
     // const returnUrl = `https://admin.shopify.com/store/${storeName}/apps/${process.env.SHOPIFY_APP_NAME}/app/thankyou?plan=${selectedPlanId}`;
-    const returnPath = isSetting ? "app/planconfirmation" : "app/thankyou";
-const returnUrl = `https://admin.shopify.com/store/${storeName}/apps/${process.env.SHOPIFY_APP_NAME}/${returnPath}?plan=${selectedPlanId}`;
-    const variables = {
-      name: planConfig.name,
-      returnUrl,
-      trialDays: planConfig.trialDays,
-      lineItems: [
-        {
-          plan: {
-            appRecurringPricingDetails: {
-              price: {
-                amount: planConfig.price,
-                currencyCode: "USD",
+//     const returnPath = isSetting ? "app?tab=planconfirmation" : "app";
+// const returnUrl = `https://admin.shopify.com/store/${storeName}/apps/${process.env.SHOPIFY_APP_NAME}/${returnPath}?plan=${selectedPlanId}`;
+
+const returnUrl = new URL(`https://admin.shopify.com/store/${storeName}/apps/${process.env.SHOPIFY_APP_NAME}/app`);
+
+if (isSetting) {
+  returnUrl.searchParams.set("tab", "planconfirmation");
+} 
+returnUrl.searchParams.set("plan", selectedPlanId);
+    // const variables = {
+    //   name: planConfig.name,
+    //   returnUrl: returnUrl.toString(),
+    //   trialDays: planConfig.trialDays,
+    //   lineItems: [
+    //     {
+    //       plan: {
+    //         appRecurringPricingDetails: {
+    //           price: {
+    //             amount: planConfig.price,
+    //             currencyCode: "USD",
+    //           },
+    //           interval: "EVERY_30_DAYS",
+    //         },
+    //       },
+    //     },
+    //   ],
+    // };
+     const variables = {
+        name: planConfig.name,
+        returnUrl,
+        trialDays: planConfig.trialDays,
+        lineItems: [
+          {
+            plan: {
+              appRecurringPricingDetails: {
+                price: {
+                  amount: planConfig.price,
+                  currencyCode: "USD",
+                },
+                interval: "EVERY_30_DAYS",
               },
-              interval: "EVERY_30_DAYS",
             },
           },
-        },
-      ],
-    };
+          {
+            plan: {
+              appUsagePricingDetails: {
+                terms: `${planConfig?.transactionFee} fee per ${planConfig?.threshold} in donations`,
+                cappedAmount: {
+                  amount: planConfig?.threshold,
+                  currencyCode: "USD",
+                },
+              },
+            },
+          },
+        ],
+};
+
 
     const result = await admin.graphql(mutation, { variables });
     const jsonData = await result.json();

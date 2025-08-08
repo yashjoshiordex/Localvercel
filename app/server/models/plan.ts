@@ -13,6 +13,8 @@ const planSchema = new Schema(
       enum: ['EVERY_30_DAYS', 'ANNUAL'],
     },
     trialDays: { type: Number, default: 0 },
+    threshold: { type: Number, default: 0 },
+    transactionFee: { type: Number, default: 0 },
     features: [{ type: String }],
     popular: { type: Boolean, default: false },
   },
@@ -35,6 +37,8 @@ export interface IPlan extends Document {
   interval: 'EVERY_30_DAYS' | 'ANNUAL';
   trialDays: number;
   features: string[];
+   transactionFee: number;
+  threshold: number;
   popular?: boolean;
   createdAt?: Date;
   updatedAt?: Date;

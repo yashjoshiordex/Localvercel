@@ -1,3 +1,22 @@
+:root {
+  --background-color: #ECF1FB;
+  --blue:#6C8ED0;
+  --black:#000000;
+  --lightblue:#ECF1FB;
+  --green:#4A934A;
+  --red:#E33F44;
+  --white:#ffffff;
+  --border:#DCE0E3;
+  --inputborder:#949494;
+  --gray-dark: #4F4F4F;
+}
+
+body {
+  font-family: Arial, sans-serif ;
+  color: var(--black);
+}
+
+
 .progress-container{
     width: 170px;
     margin: 0 auto;
@@ -17,4 +36,102 @@
   bottom:10px;
   left:10px;
   right: 10px;
+}
+
+ .header-tab-btn .Polaris-Button {
+  background-color: var(--white) !important;
+  padding: 10px 14px;
+  font-weight: 400 !important;
+  border: 2px solid #6C8ED0;
+}
+
+.header-tab-btn .Polaris-Text--bodySm {
+  font-size: 14px !important;
+}
+
+.header-tab-btn.active-tab .Polaris-Button {
+  background-color: var(--blue) !important;
+  color: var(--white) !important;
+  padding: 12px 14px;
+  font-weight: 400 !important;
+  border: none;
+}
+
+
+/* manage Produtc UI */
+.custom-data-table-wrapper :is(table, thead, tbody, th, td) {
+  border-collapse: collapse;
+  border: 1px solid #ECF1FB !important;
+}
+
+.custom-data-table-wrapper thead tr {
+  background-color: #ECF1FB !important;
+}
+
+.custom-data-table-wrapper th,
+.custom-data-table-wrapper td {
+  text-align: center;  
+}
+
+
+ .theme-btn .Polaris-Button {
+    background-color: var(--blue);
+  color: var(--white);
+  border-radius: 6px;
+  padding: 12px 15px;
+  border: none;
+  font-size: 30px;
+ }
+
+ .theme-btn .Polaris-Text--bodySm {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+ .grey-btn .Polaris-Button {
+    background-color: #DCE0E3;
+  color: black;
+  border-radius: 6px;
+  padding: 12px 15px;
+  border: none;
+  font-size: 30px;
+ }
+
+ .grey-btn .Polaris-Text--bodySm {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+
+/* change plan css: */
+
+.freeplan-custom-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  background-color: var(--blue);
+  color: var(--white);
+  border-radius: 6px;
+  padding: 7px 16px;
+  border: none;
+  font-size: 20px;
+  width: fit-content;
+  margin: auto;
+}
+
+.select-freeplan-btn .Polaris-Button {
+  background-color: var(--blue);
+  color: var(--white);
+  border-radius: 6px;
+  padding: 14px 16px;
+  border: none;
+  font-size: 20px !important;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+.select-freeplan-btn .Polaris-Text--bodySm {
+  font-size: 20px;
+  font-weight: 700;
 }

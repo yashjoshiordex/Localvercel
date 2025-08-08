@@ -14,6 +14,7 @@ import {
   OnlineAccessInfo,
 } from '@shopify/shopify-api';
 import { SessionModel } from '../models/mongoose-session-model';
+import Donation from '../models/Donation';
 
 /** ───────────────────────────────────────────────────────────────
  * 1️⃣  Extend the Shopify Session type at runtime
@@ -55,6 +56,22 @@ export class MongooseSessionStorage {
           setDefaultsOnInsert: true,
         },
       );
+      const existingDonation = await Donation.findOne({ shopDomain: session.shop });
+
+      if (!existingDonation) {
+        await Donation.create({
+          shopDomain: session.shop,
+          totalDonation: 0,
+          donations: [],
+          isAppUninstalled: false,
+        });
+        console.log(`✅ Created new Donation doc for ${session.shop}`);
+      } else if (existingDonation.isAppUninstalled) {
+        // ♻️ Reinstall scenario: reset uninstall flag
+        existingDonation.isAppUninstalled = false;
+        await existingDonation.save();
+        console.log(`♻️ Reset uninstall flag for ${session.shop}`);
+      }
 
       return true;
     } catch (err) {

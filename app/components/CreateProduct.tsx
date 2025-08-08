@@ -3,50 +3,45 @@ import {
   FormLayout,
   TextField,
   Text,
-  Toast,
+  // Toast,
   BlockStack,
   InlineStack,
+  Button,
 } from "@shopify/polaris";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState , memo } from "react";
 import { type FC } from "react";
-import CustomToast from "./CustomToast";
-import { memo } from "react";
+// import CustomToast from "./CustomToast";
+// import { memo } from "react";
 import { fetchData } from "app/utils/helper";
-interface CreateDonationModalProps {
-  open: boolean;
-  onClose: () => void;
-  id?: string | "";
-  fetchPage: Function;
-}
+import type { IFormData, ValidationErrors, CreateDonationModalProps } from "app/interfaces/createProduct";
+import usePlan from "app/context/PlanContext";
+// import { on } from "events";
 
-interface IFormData {
-  productId?: string;
-  title: string;
-  description: string;
-  minimumDonationAmount: number | null;
-  sku: number | null | string;
-  presetvalue: any[];
-  price: number | null;
-  goalAmount: number | null;
-}
-
+// eslint-disable-next-line react/display-name
 const CreateProductModal: FC<CreateDonationModalProps> = memo(
-  ({ open, onClose, id, fetchPage }) => {
+  ({ open, onClose, id, fetchPage, onProductAction }) => {
     const [data, setData] = useState<any>();
-    const [gid, setGid] = useState<string>("");
-    const [toastActive, setToastActive] = useState({
-      toggle: false,
-      content: "",
-    });
+    // const [gid, setGid] = useState<string>("");
+    // const [toastActive, setToastActive] = useState({
+    //   toggle: false,
+    //   content: "",
+    // });
     const [loader, setLoader] = useState<boolean>(false);
     const [validation, setValidation] = useState<boolean>(true);
-    const [showToast, setShowToast] = useState(false);
+    const [validationErrors, setValidationErrors] = useState<ValidationErrors>({
+      presetValues: ["", "", ""]
+    });
+    // Add this state after the existing useState declarations
+    const [showPresetValues, setShowPresetValues] = useState<boolean>(false);
+    const { plan } = usePlan();
+    // console.log("Plan context value:", plan);
+    // const [showToast, setShowToast] = useState(false);
 
     const [formData, setFormData] = useState<IFormData>({
       productId: "",
       title: "",
       description: "",
-      minimumDonationAmount: null,
+      minimumDonationAmount: 5,
       sku: "0",
       presetvalue: ["", "", ""],
       price: 10,
@@ -62,14 +57,43 @@ const CreateProductModal: FC<CreateDonationModalProps> = memo(
     };
 
     const handlePresetValue = (index: number, value: string) => {
+      // Only allow numeric input (including decimal)
+      if (value !== "" && !/^\d*\.?\d*$/.test(value)) {
+        return; // Don't update if not a valid number
+      }
+
       setFormData((prevData) => {
         const updatedPresetValues = [...prevData.presetvalue];
         updatedPresetValues[index] = value;
+        
+        // Validate for duplicates and update errors
+        const errors = validatePresetValues(updatedPresetValues);
+        setValidationErrors({ presetValues: errors });
+
         return {
           ...prevData,
           presetvalue: updatedPresetValues,
         };
       });
+    };
+
+    const validatePresetValues = (values: string[]): string[] => {
+      const errors = ["", "", ""];
+      const numericValues = values.map(val => val === "" ? null : parseFloat(val));
+      
+      // Check for duplicates
+      for (let i = 0; i < numericValues.length; i++) {
+        if (numericValues[i] !== null && numericValues[i] !== undefined) {
+          for (let j = i + 1; j < numericValues.length; j++) {
+            if (numericValues[i] === numericValues[j] && numericValues[j] !== null) {
+              errors[i] = "Duplicate value not allowed";
+              errors[j] = "Duplicate value not allowed";
+            }
+          }
+        }
+      }
+
+      return errors;
     };
 
     const handleSubmit = async () => {
@@ -78,11 +102,29 @@ const CreateProductModal: FC<CreateDonationModalProps> = memo(
       if (!formData.title.trim()) {
         setValidation(false);
         setLoader(false);
+        onProductAction?.(false, id ? 'edit' : 'create', "Product title should not be empty.");
         return;
       }
 
-      if (id !== "") {
-        // const {presetvalue, ...data} = formData
+      // Validate preset values before submission
+      const presetErrors = validatePresetValues(formData.presetvalue);
+      const hasPresetErrors = presetErrors.some(error => error !== "");
+      
+      if (hasPresetErrors) {
+        setValidationErrors({ presetValues: presetErrors });
+        setLoader(false);
+        return;
+      }
+
+      // Convert preset values to numbers, filter out empty values
+      const validPresetValues = formData.presetvalue
+        .filter(val => val !== "")
+        .map(val => parseFloat(val));
+
+
+      try {
+        if (id !== "") {
+          // const {presetvalue, ...data} = formData
 
         const payload = {
           productId: formData.productId,
@@ -90,12 +132,12 @@ const CreateProductModal: FC<CreateDonationModalProps> = memo(
           description: formData.description,
           minimumDonationAmount: formData.minimumDonationAmount,
           sku: formData.sku,
-          presetValue: formData.presetvalue,
+          presetValue: validPresetValues,
           price: formData.price,
           goalAmount: formData.goalAmount,
         };
 
-        await fetch(`/api/updateProduct?id=${id}`, {
+        const response = await fetch(`/api/updateProduct?id=${id}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -103,55 +145,48 @@ const CreateProductModal: FC<CreateDonationModalProps> = memo(
           credentials: "include",
           body: JSON.stringify(payload),
         })
-          .then((res: any) => {
-            res.json();
+          if (response.ok) {
             setFormData({
               title: "",
               description: "",
-              minimumDonationAmount: null,
+              minimumDonationAmount: 5,
               sku: 0,
-              presetvalue: [],
+              presetvalue: ["", "", ""],
               price: 0,
               goalAmount: 0,
             });
-            fetchPage();
-          })
-          .then(
-            (data: any) => (
-              setToastActive({
-                toggle: true,
-                content: "Product created successfully!",
-              }),
-              onClose()
-            ),
-          )
-          .catch((err: any) => console.error("Error fetching API:", err))
-          .finally(() => setLoader(false));
-      } else {
-        const { presetvalue, ...data } = formData;
-        await fetch("/api/createProduct", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
-          body: JSON.stringify(data),
-        })
-          .then((res) => {
-            fetchPage();
-            res.json();
-          })
-          .then(
-            (data) => (
-              setToastActive({
-                toggle: true,
-                content: "Product created successfully!",
-              }),
-              onClose()
-            ),
-          )
-          .catch((err) => console.error("Error fetching API:", err))
-          .finally(() => setLoader(false));
+            setValidationErrors({ presetValues: ["", "", ""] });
+            onProductAction?.(true, 'edit', 'Product updated successfully!');
+            onClose();
+          } else {
+            const errorData = await response.json().catch(() => ({}));
+            onProductAction?.(false, 'edit', errorData.message || 'Failed to update product');
+          }
+        } else {
+          // Create new product
+          const { presetvalue, ...data } = formData;
+          const response = await fetch("/api/createProduct", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify(data),
+          });
+
+          if (response.ok) {
+            onProductAction?.(true, 'create', 'Product created successfully!');
+            onClose();
+          } else {
+            const errorData = await response.json().catch(() => ({}));
+            onProductAction?.(false, 'create', errorData.message || 'Failed to create product');
+          }
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        onProductAction?.(false, id ? 'edit' : 'create', 'An unexpected error occurred');
+      } finally {
+        setLoader(false);
       }
     };
 
@@ -159,12 +194,14 @@ const CreateProductModal: FC<CreateDonationModalProps> = memo(
       setFormData({
         title: "",
         description: "",
-        minimumDonationAmount: null,
+        minimumDonationAmount: 5,
         sku: 0,
         presetvalue: [],
         price: 0,
         goalAmount: 0,
       });
+      setValidationErrors({ presetValues: ["", "", ""] });
+      setShowPresetValues(false); // Add this line
       onClose();
     };
 
@@ -176,16 +213,23 @@ const CreateProductModal: FC<CreateDonationModalProps> = memo(
 
     useEffect(() => {
       if (data) {
+
+        const hasPresetValues = data.data.presetValue && data.data.presetValue.length > 0;
+
         setFormData({
           title: data.data.title,
           description: data.data.description,
           minimumDonationAmount: data.data.minimumDonationAmount,
           sku: data.data.sku,
-          presetvalue: data.data.presetValue,
+          presetvalue: data.data.presetValue || ["", "", ""],
           price: data.data.price,
           productId: data.data.id,
           goalAmount: data.data.goalAmount,
         });
+        // Show preset values section if data has preset values
+        setShowPresetValues(hasPresetValues);
+        setValidationErrors({ presetValues: ["", "", ""] });
+        setValidationErrors({ presetValues: ["", "", ""] });
       }
     }, [data]);
 
@@ -249,8 +293,15 @@ const CreateProductModal: FC<CreateDonationModalProps> = memo(
                   handleInputChange("minimumDonationAmount", value)
                 }
                 autoComplete="off"
-                disabled
+                disabled={plan === "Free Plan"} 
               />
+              {plan === "Free Plan" && (
+                <div style={{ marginTop: "8px" }}>
+                  <Text as="p" variant="bodySm" tone="subdued">
+                    💡 Upgrade your Free Plan to set custom minimum donation values
+                  </Text>
+                </div>
+              )}
             </div>
 
             <TextField
@@ -261,52 +312,98 @@ const CreateProductModal: FC<CreateDonationModalProps> = memo(
             />
 
             {id && (
-              <BlockStack>
-                <Text as="h2" variant="headingSm">
-                  Preset Values
-                </Text>
-                <div className="mb-2">
-                  <Text as="p" tone="subdued">
-                    Allow customers to choose from preset donation amounts when
-                    they view the donation widget. You can add up to three
-                    preset values.
-                  </Text>
-                </div>
-                <InlineStack gap="400" align="start">
-                  <BlockStack gap="100">
-                    <Text variant="bodySm" as="span" fontWeight="bold">
-                      Value 1
-                    </Text>
-                    <TextField
-                      label=""
-                      autoComplete="off"
-                      onChange={(value) => handlePresetValue(0, value)}
-                      value={formData.presetvalue[0]}
-                    />
+              <BlockStack gap="300">
+                {!showPresetValues ? (
+                  <div>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setShowPresetValues(true)}
+                    >
+                      Add Preset Values
+                    </Button>
+                    <div className="mt-2">
+                      <Text as="p" tone="subdued" variant="bodySm">
+                        Allow customers to choose from preset donation amounts
+                      </Text>
+                    </div>
+                  </div>
+                ) : (
+                  <BlockStack gap="200">
+                    <InlineStack align="space-between" blockAlign="center">
+                      <Text as="h2" variant="headingSm">
+                        Present Values
+                      </Text>
+                      <Button
+                        variant="tertiary"
+                        tone="critical"
+                        onClick={() => {
+                          setShowPresetValues(false);
+                          // Clear preset values when hiding
+                          setFormData(prev => ({
+                            ...prev,
+                            presetvalue: ["", "", ""]
+                          }));
+                          setValidationErrors({ presetValues: ["", "", ""] });
+                        }}
+                      >
+                        ✕
+                      </Button>
+                    </InlineStack>
+
+                    <div className="mb-2">
+                      <Text as="p" tone="subdued">
+                        Allow customers to choose from preset donation amounts when
+                        they view the donation widget. You can add up to three
+                        preset values.
+                      </Text>
+                    </div>
+
+                    <InlineStack gap="400" align="start">
+                      <BlockStack gap="100">
+                        <Text variant="bodySm" as="span" fontWeight="bold">
+                          Value 1
+                        </Text>
+                        <TextField
+                          label=""
+                          autoComplete="off"
+                          onChange={(value) => handlePresetValue(0, value)}
+                          value={formData.presetvalue[0]}
+                          error={validationErrors.presetValues[0]}
+                          placeholder="Enter amount"
+                          type="text"
+                        />
+                      </BlockStack>
+                      <BlockStack gap="100">
+                        <Text variant="bodySm" as="span" fontWeight="bold">
+                          Value 2
+                        </Text>
+                        <TextField
+                          label=""
+                          autoComplete="off"
+                          onChange={(value) => handlePresetValue(1, value)}
+                          value={formData.presetvalue[1]}
+                          error={validationErrors.presetValues[1]}
+                          placeholder="Enter amount"
+                          type="text"
+                        />
+                      </BlockStack>
+                      <BlockStack gap="100">
+                        <Text variant="bodySm" as="span" fontWeight="bold">
+                          Value 3
+                        </Text>
+                        <TextField
+                          label=""
+                          autoComplete="off"
+                          onChange={(value) => handlePresetValue(2, value)}
+                          value={formData.presetvalue[2]}
+                          error={validationErrors.presetValues[2]}
+                          placeholder="Enter amount"
+                          type="text"
+                        />
+                      </BlockStack>
+                    </InlineStack>
                   </BlockStack>
-                  <BlockStack gap="100">
-                    <Text variant="bodySm" as="span" fontWeight="bold">
-                      Value 2
-                    </Text>
-                    <TextField
-                      label=""
-                      autoComplete="off"
-                      onChange={(value) => handlePresetValue(1, value)}
-                      value={formData.presetvalue[1]}
-                    />
-                  </BlockStack>
-                  <BlockStack gap="100">
-                    <Text variant="bodySm" as="span" fontWeight="bold">
-                      Value 3
-                    </Text>
-                    <TextField
-                      label=""
-                      autoComplete="off"
-                      onChange={(value) => handlePresetValue(2, value)}
-                      value={formData.presetvalue[2]}
-                    />
-                  </BlockStack>
-                </InlineStack>
+                )}
               </BlockStack>
             )}
             <div>
@@ -334,12 +431,12 @@ const CreateProductModal: FC<CreateDonationModalProps> = memo(
           }
         />
       )} */}
-        {showToast && (
+        {/* {showToast && (
           <CustomToast
             content="Donation product saved successfully"
             onDismiss={() => setShowToast(false)}
           />
-        )}
+        )} */}
       </Modal>
     );
   },

@@ -1,5 +1,4 @@
-import { useState, useCallback } from 'react';
-import { Page, Button, Modal, Text } from '@shopify/polaris';
+import { Page, Modal, Text } from '@shopify/polaris';
 
 interface Iprops {
   active:boolean,

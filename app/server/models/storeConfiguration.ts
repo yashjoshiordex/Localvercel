@@ -4,6 +4,7 @@ import { IStoreSettingsDocument } from '../types/store';
 const storeConfigurationSchema = new mongoose.Schema<IStoreSettingsDocument>({
   shop: { type: String, required: true, unique: true },
   postPurchaseProduct: { type: String, default: null },
+  tagValue: { type: String, default: null },
   autoFulfillOrders: { type: Boolean, default: false },
   requireShipping: { type: Boolean, default: false },
   applySalesTax: { type: Boolean, default: false },

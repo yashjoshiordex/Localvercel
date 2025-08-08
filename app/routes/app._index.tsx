@@ -1,45 +1,30 @@
 import { useEffect } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import { redirect, useFetcher, useLoaderData } from "@remix-run/react";
-import {
-  Page,
-  Layout,
-  Text,
-  Card,
-  Button,
-  BlockStack,
-  Box,
-  List,
-  Link,
-  InlineStack,
-} from "@shopify/polaris";
-import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
+import {  useFetcher, useLoaderData, useSearchParams } from "@remix-run/react";
+import {  useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import { isOnboardingCompleted } from "app/server/utils/checkOnboarding.server";
 import Onboarding from "./app.onboarding/route";
-import ThankYou from "./app.thankyou/route";
-import Productcreated from "app/components/ProductCreated";
-import Dashboard from "app/components/Dashboard";
-import Loader from "app/components/Loader";
+import MainApp from "app/components/MainApp";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session } = await authenticate.admin(request);
   const completed = await isOnboardingCompleted(session.shop);
-
+  
   return { isCompleted: completed };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin, session } = await authenticate.admin(request);
+  const { admin} = await authenticate.admin(request);
 
   const color = ["Red", "Orange", "Yellow", "Green"][
     Math.floor(Math.random() * 4)
   ];
   const response = await admin.graphql(
     `#graphql
-      mutation populateProduct($product: ProductCreateInput!) {
-        productCreate(product: $product) {
-          product {
+    mutation populateProduct($product: ProductCreateInput!) {
+      productCreate(product: $product) {
+        product {
             id
             title
             handle
@@ -103,10 +88,11 @@ export default function Index() {
   const fetcher = useFetcher<typeof action>();
   const { isCompleted } = useLoaderData<{ isCompleted: boolean }>();
 
+
   const shopify = useAppBridge();
-  const isLoading =
-    ["loading", "submitting"].includes(fetcher.state) &&
-    fetcher.formMethod === "POST";
+  // const isLoading =
+  //   ["loading", "submitting"].includes(fetcher.state) &&
+  //   fetcher.formMethod === "POST";
   const productId = fetcher.data?.product?.id.replace(
     "gid://shopify/Product/",
     "",
@@ -117,7 +103,9 @@ export default function Index() {
       shopify.toast.show("Product created");
     }
   }, [productId, shopify]);
-  const generateProduct = () => fetcher.submit({}, { method: "POST" });
+  // const generateProduct = () => fetcher.submit({}, { method: "POST" });
+  const [searchParams] = useSearchParams();
+  const initialTab = searchParams.get("tab") || "dashboard";
 
-  return isCompleted ? <Dashboard /> : <Onboarding />;
+  return isCompleted ? <MainApp initialTab={initialTab}/> : <Onboarding />;
 }

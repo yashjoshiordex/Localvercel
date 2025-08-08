@@ -1,18 +1,14 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Page,
   Card,
   Button,
-  BlockStack,
   InlineStack,
   Text,
-  Badge,
   DataTable,
-  Pagination,
 } from "@shopify/polaris";
-import CreateDonationModal from "./CreateProduct";
+// import CreateDonationModal from "./CreateProduct";
 import axios from "axios";
-import CreateProductModal from "./CreateProduct";
 import CreateProduct from "./CreateProduct";
 import ConfirmationModalExample from "./ConfirmationModal";
 

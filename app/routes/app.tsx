@@ -7,6 +7,7 @@ import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 
 import { authenticate } from "../shopify.server";
 import { Frame } from "@shopify/polaris";
+import { PlanProvider } from "app/context/PlanContext";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
@@ -19,7 +20,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export default function App() {
   const { apiKey } = useLoaderData<typeof loader>();
 
+  
   return (
+    <PlanProvider>
     <AppProvider isEmbeddedApp apiKey={apiKey}>
       <Frame>
       <NavMenu>
@@ -29,7 +32,7 @@ export default function App() {
         {/* <Link to="/app/additional">Additional page</Link> */}
         <Link to="/app/manage">Manage Product</Link>
         <Link to="/app/plans">Change Plan</Link>
-        <Link to="/app/settings">Setting</Link>
+        <Link to="/app/settings">Settings</Link>
         {/* <Link to="/app/onboarding">Onboarding page</Link>
         <Link to="/app/sub">Test subscription page</Link>
         <Link to="/app/subscription-plans">Test plans page</Link> */}
@@ -37,6 +40,7 @@ export default function App() {
       <Outlet />
         </Frame>
     </AppProvider>
+    </PlanProvider>
   );
 }
 

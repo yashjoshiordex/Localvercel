@@ -1,6 +1,5 @@
 import { SessionModel } from "app/server/models/mongoose-session-model";
 import { authenticate } from "../../shopify.server";
-import { Types } from "mongoose";
 import { getPlanById } from "app/server/services/plan.service";
 import { IPlan } from "app/server/models/plan";
 import { createSubscription } from "app/server/services/subscription.service";

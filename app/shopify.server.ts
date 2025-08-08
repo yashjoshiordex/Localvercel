@@ -7,6 +7,7 @@ import {
 } from "@shopify/shopify-app-remix/server";
 import { connectToDatabase } from "./server/libs/db.server";
 import { MongooseSessionStorage } from "./server/libs/mongoose-session-storage";
+import StoreConfiguration from "./server/models/storeConfiguration";
 
 connectToDatabase()
 const shopify = shopifyApp({
@@ -34,6 +35,17 @@ const shopify = shopifyApp({
       try {
         const result = await shopify.registerWebhooks({ session });
         console.log("Webhooks registered:", result);
+        
+        const existingConfig = await StoreConfiguration.findOne({ shop: session.shop });
+        
+        if (!existingConfig) {
+          console.log("Creating initial store configuration for:", session.shop);
+          const newStoreConfig = new StoreConfiguration({
+            shop: session.shop,
+          });
+          await newStoreConfig.save();
+          console.log("✅ Initial store configuration created for:", session.shop);
+        }
       } catch (error) {
         console.error("Error registering webhooks:", error);
       }

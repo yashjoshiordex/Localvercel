@@ -20,12 +20,16 @@ export async function loader({ request }: { request: Request }) {
     const url = new URL(request.url);
     const pageParam = url.searchParams.get("page");
     const pageSizeParam = url.searchParams.get("pageSize");
+    const statusParam = url.searchParams.get("status");
+    const searchParam = url.searchParams.get("search");
     const shopName = session.shop; // Use authenticated shop
 
-    logger.info("Query parameters received", { 
-      pageParam, 
-      pageSizeParam, 
-      shop: shopName 
+    logger.info("Query parameters received", {
+      pageParam,
+      pageSizeParam,
+      statusParam,
+      searchParam,
+      shop: shopName
     });
 
     // Parse parameters with defaults
@@ -36,7 +40,7 @@ export async function loader({ request }: { request: Request }) {
     if (isNaN(page) || page < 1) {
       logger.error("Invalid page parameter", { pageParam, parsedPage: page });
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: "Page must be a valid number greater than 0",
           debug: { receivedPage: pageParam, parsedPage: page }
         }),
@@ -47,7 +51,7 @@ export async function loader({ request }: { request: Request }) {
     if (isNaN(pageSize) || pageSize < 1) {
       logger.error("Invalid pageSize parameter", { pageSizeParam, parsedPageSize: pageSize });
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           error: "Page size must be a valid number between 1 and 100",
           debug: { receivedPageSize: pageSizeParam, parsedPageSize: pageSize }
         }),
@@ -55,16 +59,28 @@ export async function loader({ request }: { request: Request }) {
       );
     }
 
-    const getProductsData = await getProducts(page, pageSize, shopName);
+    // Validate status parameter if provided
+    if (statusParam && !["Active", "Archived"].includes(statusParam)) {
+      logger.error("Invalid status parameter", { statusParam });
+      return new Response(
+        JSON.stringify({
+          error: "Status must be either 'Active' or 'Archived'",
+          debug: { receivedStatus: statusParam }
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
 
-    return ({getProductsData});
+    const getProductsData = await getProducts(page, pageSize, shopName, statusParam, searchParam);
 
-  } catch (err:any) {
-    
+    return ({ getProductsData });
+
+  } catch (err: any) {
+
     // Catch-all for unexpected errors
     logger.error("Unexpected error in products API", { error: err });
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: "Internal server error",
         debug: process.env.NODE_ENV === 'development' ? err.message : undefined
       }),

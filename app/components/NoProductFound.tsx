@@ -1,16 +1,9 @@
 import React from 'react'
 import {
-  Page,
-  Card,
   Text,
-  BlockStack,
-  Button,
   Box,
   Image,
   Layout,
-  Modal,
-  TextField,
-  FormLayout,
 } from "@shopify/polaris";
 import Notfound from "../assets/images/Notfound.png";
 

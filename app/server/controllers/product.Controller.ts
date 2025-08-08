@@ -45,18 +45,47 @@ export const createProductInDb = async ({
 export const getProducts = async (
   page: number,
   pageSize: number,
-  shopName: string
+  shopName: string,
+  status?: string | null,
+  search?: string | null
 ): Promise<ProductApiResponse | ErrorResponse> => {
   try {
     const skip: number = (page - 1) * pageSize;
 
+    // Build query object
+    const query: any = {
+      shop: shopName,
+      // isDeleted: false 
+    };
+
+    // Add status filter if provided
+    if (status) {
+      query.status = status;
+    }
+
+    // Add search filter if provided
+    if (search) {
+      // Search in title 
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } }
+      ];
+    }
+
+    logger.info("Querying products with filters", {
+      page,
+      pageSize,
+      shop: shopName,
+      status: status || 'All',
+      hasSearchTerm: !!search
+    });
+
     const [products, totalCount] = await Promise.all([
-      Product.find({ shop: shopName, isDeleted: false })
+      Product.find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(pageSize)
         .lean() as unknown as ProductDocument[],
-      Product.countDocuments({ shop: shopName, isDeleted: false }),
+      Product.countDocuments(query),
     ]);
 
     const totalPages: number = Math.ceil(totalCount / pageSize);
@@ -74,9 +103,14 @@ export const getProducts = async (
       prevPage: hasPrevPage ? page - 1 : null,
     };
 
-    logger.info("Products fetched successfully", { shop: shopName });
+    logger.info("Products fetched successfully", {
+      shop: shopName,
+      count: products.length,
+      totalCount,
+      filters: { status: status || 'All', search: search || 'None' }
+    });
 
-    return {
+    const responseData = {
       success: true,
       data: {
         products,
@@ -84,8 +118,14 @@ export const getProducts = async (
         shop: {
           name: shopName,
         },
+        filters: {
+          status: status || null,
+          search: search || null
+        }
       },
     };
+
+    return responseData;
   } catch (error) {
     logger.error("Unexpected error while fetching products", { error, shop: shopName });
     return { success: false, error: "Failed to fetch products" };
@@ -128,6 +168,6 @@ export const updateProductInDb = async ({
 export async function softDeleteProductByShopifyId(shopifyProductId: string) {
   return Product.findOneAndUpdate(
     { shopifyProductId },
-    { isDeleted: true }
+    { isDeleted: true, status: "Archived" }
   );
 }

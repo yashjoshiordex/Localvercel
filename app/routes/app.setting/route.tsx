@@ -1,21 +1,20 @@
 
 
-import { Card, Page, Text, TextField, Checkbox, Select, Button, Layout, BlockStack ,Link} from '@shopify/polaris';
+import { Card, Page, Text,  Checkbox,  Button, Layout, BlockStack ,Link} from '@shopify/polaris';
 import { useState } from 'react';
 
 
 export default function Setting() { 
 
- const [postPurchaseProduct, setPostPurchaseProduct] = useState('None');
   const [autoFulfill, setAutoFulfill] = useState(false);
   const [requireShipping, setRequireShipping] = useState(false);
   const [applyTax, setApplyTax] = useState(false);
 
-  const productOptions = [
-    { label: 'None', value: 'None' },
-    { label: 'Donation Product 1', value: 'donation-1' },
-    { label: 'Donation Product 2', value: 'donation-2' },
-  ];
+  // const productOptions = [
+  //   { label: 'None', value: 'None' },
+  //   { label: 'Donation Product 1', value: 'donation-1' },
+  //   { label: 'Donation Product 2', value: 'donation-2' },
+  // ];
 
   return (
     <Page title="DonateMate for Donations">

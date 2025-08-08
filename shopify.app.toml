@@ -3,7 +3,7 @@
 client_id = "a0b25aa84eb97a0a0c689abf5a6673aa"
 name = "Donate-Me"
 handle = "donate-me-1"
-application_url = "https://essentially-june-governments-lovely.trycloudflare.com"
+application_url = "https://solely-territories-reasoning-ppm.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,10 +27,15 @@ api_version = "2025-04"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_fulfillments,read_merchant_managed_fulfillment_orders,read_products,read_publications,write_assigned_fulfillment_orders,write_fulfillments,write_inventory,write_merchant_managed_fulfillment_orders,write_orders,write_products,write_publications,write_third_party_fulfillment_orders"
+scopes =  "read_customers,read_fulfillments,read_merchant_managed_fulfillment_orders,read_orders,read_products,read_publications,write_assigned_fulfillment_orders,write_fulfillments,write_inventory,write_merchant_managed_fulfillment_orders,write_orders,write_products,write_publications,write_third_party_fulfillment_orders"
 
 [auth]
-redirect_urls = ["https://essentially-june-governments-lovely.trycloudflare.com/auth/callback", "https://essentially-june-governments-lovely.trycloudflare.com/auth/shopify/callback", "https://essentially-june-governments-lovely.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://solely-territories-reasoning-ppm.trycloudflare.com/auth/callback", "https://solely-territories-reasoning-ppm.trycloudflare.com/auth/shopify/callback", "https://solely-territories-reasoning-ppm.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false
+
+[app_proxy]
+url = "https://gateway-winning-jamie-performs.trycloudflare.com"
+subpath = "donation"
+prefix = "apps"

@@ -1,100 +1,43 @@
-import { useNavigate, useSearchParams } from "@remix-run/react";
-import { Page, Layout, Text, Button, Box } from "@shopify/polaris";
-import { useEffect, useRef, useState } from "react";
-// import Logo from "../../assets/images/donate-img.png"
 
-export default function planconfirmation() {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [subscription, setSubscription] = useState<any>(null);
+import { redirect } from "@remix-run/node";
+import type { LoaderFunctionArgs } from "@remix-run/node";
 
-  const chargeId = searchParams.get("charge_id");
-  const planId = searchParams.get("plan");
-
-  const hasFetched = useRef(false);
-
-  const fetchSubscriptionDetails = async () => {
-    try {
-      const response = await fetch(
-        `/api/get-subscription?charge_id=${chargeId}&plan=${planId}`,
-      );
-      const data = await response.json();
-
-      if (response.ok) {
-        setSubscription(data);
-      } else {
-        setError(data.error || "Failed to fetch subscription details.");
-      }
-    } catch (err) {
-      setError(`An unexpected error occurred: ${(err as Error).message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    localStorage.clear();
-    if (!hasFetched.current) {
-      fetchSubscriptionDetails();
-      hasFetched.current = true;
-    }
-  }, []);
-
-  console.log('sdfdsf', subscription)
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const url = new URL(request.url);
+  const planId = url.searchParams.get("plan");
+  const chargeId = url.searchParams.get("charge_id");
+  console.log('PlanConfirmation - chargeId:', chargeId);
   
-  const handleOnboard = async () => {
-    navigate('/app/plans')
-    // try {
-    //   await fetch(`/api/onboarding`, {
-    //     method: "POST",
-    //     credentials: "include",
-    //   });
-    //   navigate("/app/dashboard");
-    // } catch (error) {
-    //   console.log("Error: ", error);
-    // }
-  };
+  
+  // // Redirect to MainApp with planconfirmation tab
+  // let redirectUrl = "/app?tab=planconfirmation";
+  
+  // if (planId) {
+  //   redirectUrl += `&plan=${planId}`;
+  // }
+  
+  // if (chargeId) {
+  //   redirectUrl += `&charge_id=${chargeId}`;
+  // }
+  
+  // return redirect(redirectUrl);
 
-  return (
-    <Page>
-      <Layout>
-        <Layout.Section>
-          <Box background="bg-surface" padding="500" borderRadius="300">
+  const redirectUrl = new URL("/app", url.origin);
+  redirectUrl.searchParams.set("tab", "planconfirmation");
+  
+  if (planId) {
+    redirectUrl.searchParams.set("plan", planId);
+  }
+  
+  if (chargeId) {
+    redirectUrl.searchParams.set("charge_id", chargeId);
+  }
+  
+  // Return just the pathname and search params
+  return redirect(redirectUrl.pathname + redirectUrl.search);
+};
 
-            <div className="text-center">
-              <Text as="h1" variant="headingLg">
-                Your plan has been updated!!!
-              </Text>
-
-              {/* <div className="my-3">
-                <Text as="p" variant="bodyMd">
-                  Click <strong>Finish</strong> to complete the onboarding
-                  process. You can restart onboarding anytime by navigating to{" "}
-                  <em>DonateMe &gt; Settings &gt; Restart Onboarding</em>.
-                </Text>
-              </div> */}
-
-              <Button
-                variant="primary"
-                onClick={handleOnboard}
-                loading={loading}
-              >
-                Go to Plans
-              </Button>
-
-              {error && (
-                <div className="mt-3">
-                  <Text as="p" variant="bodySm" tone="critical">
-                    {error}
-                  </Text>
-                </div>
-              )}
-            </div>
-          </Box>
-        </Layout.Section>
-      </Layout>
-    </Page>
-  );
+export default function PlanConfirmationRoute() {
+  // This component should never render because of the redirect
+  return null;
 }

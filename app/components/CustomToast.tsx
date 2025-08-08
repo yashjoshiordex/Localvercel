@@ -1,4 +1,3 @@
-import { Card, Text } from '@shopify/polaris';
 import { useEffect } from 'react';
 
 interface CustomToastProps {

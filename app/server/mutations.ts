@@ -294,3 +294,124 @@ export  const  ARCHIVE_MUTATION = `
       }
     }
   `;
+
+
+export const PRODUCT_VARIANT_QUERY = `
+mutation productVariantsBulkCreate($productId: ID!, $variants: [ProductVariantsBulkInput!]!) {
+  productVariantsBulkCreate(productId: $productId, variants: $variants) {
+    productVariants {
+      id
+      title
+      price
+    }
+    userErrors {
+      field
+      message
+    }
+  }
+}
+`
+
+export const PRODUCT_ALL_VARIANTS_QUERY = `
+  query GetAllVariants($id: ID!) {
+    product(id: $id) {
+      variants(first: 100) {
+        edges {
+          node {
+            id
+            title
+          }
+        }
+      }
+    }
+  }
+`;
+
+export const PRODUCT_DETAIL_QUERY = `
+  query ProductDetails($id: ID!) {
+    product(id: $id) {
+      id
+      title
+      description
+      vendor
+      productType
+      tags
+      options {
+        name
+        values
+      }
+      variants(first: 15) {
+        edges {
+          node {
+            id
+            title
+            sku
+            price
+            inventoryQuantity
+            inventoryItem {
+              id
+              tracked
+              requiresShipping
+            }
+          }
+        }
+      }
+      images(first: 5) {
+        edges {
+          node {
+            src
+            altText
+          }
+        }
+      }
+    }
+  }
+`;
+export const VARIANT_DETAIL_QUERY = `
+query getVariantByID($id: ID!) {
+  productVariant(id: $id) {
+    id
+    title
+    sku
+    price
+    inventoryQuantity
+    product {
+      id
+      title
+    }
+    metafields(first: 5) {
+      edges {
+        node {
+          namespace
+          key
+          value
+        }
+      }
+    }
+  }
+}
+`;
+
+export const APP_USAGE_CHARGE_MUTATION = `
+  mutation appUsageRecordCreate($subscriptionLineItemId: ID!, $price: MoneyInput!, $description: String!) {
+    appUsageRecordCreate(
+      subscriptionLineItemId: $subscriptionLineItemId
+      price: $price
+      description: $description
+    ) {
+      appUsageRecord {
+        id
+        price {
+          amount
+          currencyCode
+        }
+        description
+        createdAt
+      }
+      userErrors {
+        field
+        message
+      }
+    }
+  }
+`;

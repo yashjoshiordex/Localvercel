@@ -130,7 +130,7 @@ export const action = async ({ request }: any) =>
       }
     }
 
-    const metafieldResult = await setProductMetafield(admin, productId, presetValue);
+    const metafieldResult = await setProductMetafield(admin, productId, presetValue,minimumDonationAmount);
     if (!metafieldResult.success) {
       logger.error("Error setting metafield:", metafieldResult.errors);
       console.log("Error setting metafield:", metafieldResult.errors);

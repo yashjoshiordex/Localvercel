@@ -1,15 +1,34 @@
 import { CREATE_PRODUCT_MUTATION } from "app/server/mutations";
 import { publishProductToOnlineStore } from "./publishProduct";
 import { setProductMetafield } from "./metafieldService";
+import { checkPlanPermission } from "app/server/utils/permissionCheak";
 
-export async function createShopifyProduct(admin: any, title: string, description: string) {
+export async function createShopifyProduct(
+    admin: any, 
+    title: string, 
+    description: string, 
+    storeConfig?: any,
+    shop?: string
+) {
+    let productTags = ["DonateMe"];
+    
+    if (storeConfig?.tagValue && shop) {
+        // Check if the shop has the required plan for using tagValue
+        const permissionResult = await checkPlanPermission(shop, ["Gold Plan", "Silver Plan"]);
+        
+        if (permissionResult.hasAccess) {
+            productTags.push(storeConfig.tagValue);
+            console.log(`Adding custom tag ${storeConfig.tagValue} to product`);
+        }
+    }
+    
     const response = await admin.graphql(CREATE_PRODUCT_MUTATION, {
         variables: {
             product: {
                 title,
                 vendor: "DonateMe",
                 descriptionHtml: description,
-                tags: ["DonateMe"],
+                tags: productTags,
             },
             media: [
                 {

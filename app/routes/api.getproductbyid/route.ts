@@ -2,7 +2,7 @@ import { Product } from "app/server/models/Product";
 import { authenticate } from "app/shopify.server";
 
 export const loader = async ({ request }: any) => {
-  const { admin, session } = await authenticate.admin(request);
+  const {  session } = await authenticate.admin(request);
   const shop: string = session?.shop;
   const url = new URL(request.url);
   const shopifyId: string | null = url.searchParams.get("id");

@@ -60,7 +60,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
       /* 3️⃣  Create product in Shopify ------------------------------------------- */
       const { product, variantId, errors: createErrors }: CreateProductResult =
-        await createShopifyProduct(admin, title, description);
+        await createShopifyProduct(admin, title, description, storeConfig, shopDomain);
 
       if (createErrors?.length > 0) {
         logger.error(`Shopify product creation errors ${JSON.stringify(createErrors)}`);
@@ -84,7 +84,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       const inventoryErrors = await updateInventoryItem(admin, inventoryItemId, {
         sku,
         requiresShipping: requireShipping,
-        tracked: true,
+        tracked: false,
       });
       if (inventoryErrors.length > 0) {
         console.log("Inventory update errors:", inventoryErrors);
@@ -96,7 +96,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
       const variantErrors: VariantUpdateErrors = await updateProductVariant(
         admin,
-        product.id,
+        product.id, 
         variantId,
         body.price ?? 10,
         sku,

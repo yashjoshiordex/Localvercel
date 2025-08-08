@@ -1,15 +1,9 @@
 import {
-  Page,
   Card,
-  Layout,
   Text,
   InlineStack,
   BlockStack,
-  Icon,
-  Button,
   InlineGrid,
-  Box,
-  Badge,
   Link,
 } from "@shopify/polaris";
 

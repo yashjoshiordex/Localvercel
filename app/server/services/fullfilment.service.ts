@@ -3,6 +3,10 @@ import { Product } from '../models/Product';
 import StoreConfiguration from '../models/storeConfiguration';
 import { logger } from '../utils/logger';
 import { FULFILLMENT_CREATE_MUTATION, PRODUCT_VARIANT_CREATE_MUTATION } from '../mutations';
+import Donation from '../models/Donation';
+import { getStoreWithPlan } from '../controllers/store.controller';
+import { createAppUsageCharge } from '../utils/createAppUsageCharge';
+import { getSubscriptionLineItemId } from '../utils/subscriptionLineItem';
 
 function toShopifyGID(type: "Product" | "ProductVariant", id: number | string): string {
   return `gid://shopify/${type}/${id}`;
@@ -203,6 +207,16 @@ export async function handleOrderFulfillment(shop: string, orderData: any, admin
       });
       throw new Error(userErrors[0].message);
     }
+    
+    // Create a properly formatted fullName or null
+    let fullName = null;
+    if (orderData.customer) {
+      const firstName = orderData.customer.first_name || '';
+      const lastName = orderData.customer.last_name || '';
+      if (firstName || lastName) {
+        fullName = `${firstName} ${lastName}`.trim();
+      }
+    }
 
     const order = new Order({
       shop,
@@ -216,10 +230,186 @@ export async function handleOrderFulfillment(shop: string, orderData: any, admin
         quantity: item.quantity,
         price: item.price,
         vendor: item.vendor,
+        productName: item.name || null,
       })),
+      clientDetails: {
+        id: orderData.customer?.id ? String(orderData.customer.id) : null,
+        fullName: fullName,
+        email: orderData.customer?.email || null,
+      }
     });
     await order.save();
     console.log("Order saved in DB", order);
+    const donationTotal = donateMeLineItems.reduce((sum: number, item: any) => {
+      const itemTotal = parseFloat(item.price) * item.quantity;
+      return sum + itemTotal;
+    }, 0);
+
+    // if (donationTotal > 0) {
+    //   const donationDoc = await Donation.findOne({ shopDomain: shop });
+    //   const { planDoc } = await getStoreWithPlan(shop);
+    //   console.log("plandoc", planDoc);
+
+    //   console.log("donationDoc", donationDoc);
+
+    //   if (donationDoc) {
+    //     // Update donation total
+    //     donationDoc.lastChargedDonationAmount = donationDoc?.totalDonation
+    //     donationDoc.totalDonation += donationTotal;
+    //     donationDoc.donations.push({
+    //       orderId: orderData.id.toString(),
+    //       amount: donationTotal,
+    //       donatedAt: new Date(),
+    //     });
+    //     const threshold = planDoc?.threshold;
+    //     const percentFee = planDoc?.transactionFee;
+
+    //     const totalDonation = donationDoc.totalDonation;
+    //     let overage = 0
+    //     if (totalDonation > threshold) {
+    //       const prevOver = Math.max(donationDoc.lastChargedDonationAmount - planDoc?.threshold, 0);
+    //       overage = donationDoc.totalDonation - planDoc?.threshold - prevOver;
+    //       const fee = (overage * percentFee) / 100;
+    //       const lineItemId = await getSubscriptionLineItemId(admin);
+    //       // ⛔️ Only charge if not already charged for this batch
+    //       try {
+    //         await createAppUsageCharge({
+    //           admin: admin,
+    //           amount: parseFloat(fee.toFixed(2)),
+    //           description: `Usage charge for $${totalDonation.toFixed(2)} donations`,
+    //           subscriptionLineItemId: lineItemId as string
+    //         });
+
+    //         await donationDoc.save();
+    //       } catch (billingError: any) {
+    //         logger.error('❌ Failed to create usage charge', {
+    //           shop,
+    //           error: billingError.message,
+    //         });
+    //         // Don't reset totalDonation if billing failed
+    //       }
+    //     } else {
+    //       await donationDoc.save(); // Just save updated donations, no billing
+    //     }
+    //   } else {
+    //     logger.error('❌ Donation document not found for store', { shop });
+    //   }
+    // }
+    if (donationTotal > 0) {
+      const donationDoc = await Donation.findOne({ shopDomain: shop });
+
+      if (!donationDoc) {
+        const msg = `❌ Donation document not found for store: ${shop}`;
+        logger.error(msg, { shop });
+        console.error(msg);
+        return;
+      }
+
+      const { planDoc } = await getStoreWithPlan(shop);
+      if (!planDoc) {
+        const msg = `❌ Plan document not found for store: ${shop}`;
+        logger.error(msg, { shop });
+        console.error(msg);
+        return;
+      }
+
+      const initLog = {
+        shop:shop,
+        donationTotal:donationTotal,
+        existingDonation: donationDoc.totalDonation,
+        plan: {
+          threshold: planDoc.threshold,
+          transactionFee: planDoc.transactionFee,
+        },
+      };
+      logger.info('🔍 Retrieved plan and donation documents.', initLog);
+      console.log('🔍 Retrieved plan and donation documents.', initLog);
+
+      // Backup current total before update
+      donationDoc.lastChargedDonationAmount = donationDoc.totalDonation;
+
+      // Update donation record
+      donationDoc.totalDonation += donationTotal;
+      donationDoc.donations.push({
+        orderId: orderData.id.toString(),
+        amount: donationTotal,
+        donatedAt: new Date(),
+      });
+
+      const threshold = planDoc.threshold;
+      const percentFee = planDoc.transactionFee;
+      const totalDonation = donationDoc.totalDonation;
+
+      // Calculate overage
+      let overage = 0;
+      if (totalDonation > threshold) {
+        const previousOverage = Math.max(
+          donationDoc.lastChargedDonationAmount - threshold,
+          0
+        );
+        overage = totalDonation - threshold - previousOverage;
+
+        const overageLog = {
+          totalDonation:totalDonation,
+          previousOverage:previousOverage,
+          overage:overage,
+          percentFee:percentFee,
+        };
+        logger.info('⚠️ Donation exceeds threshold. Calculating overage fee.', overageLog);
+        console.log('⚠️ Donation exceeds threshold. Calculating overage fee.', overageLog);
+
+        if (overage > 0) {
+          const fee = (overage * percentFee) / 100;
+
+          try {
+            const lineItemId = await getSubscriptionLineItemId(admin);
+
+            await createAppUsageCharge({
+              admin,
+              amount: parseFloat(fee.toFixed(2)),
+              description: `Usage charge for $${totalDonation.toFixed(2)} donations`,
+              subscriptionLineItemId: lineItemId as string,
+            });
+
+            const chargeLog = {
+              shop,
+              chargedAmount: fee.toFixed(2),
+              overage,
+              lineItemId,
+            };
+            logger.info('✅ Usage charge created successfully.', chargeLog);
+            console.log('✅ Usage charge created successfully.', chargeLog);
+
+            await donationDoc.save();
+            console.log('💾 Donation document saved after billing.');
+          } catch (billingError: any) {
+            logger.error('❌ Failed to create usage charge.', {
+              shop,
+              error: billingError.message,
+            });
+            console.error('❌ Failed to create usage charge:', billingError);
+            return;
+          }
+        } else {
+          logger.info('ℹ️ No new overage to charge. Skipping billing.');
+          console.log('ℹ️ No new overage to charge. Skipping billing.');
+          await donationDoc.save();
+          console.log('💾 Donation document saved without billing.');
+        }
+      } else {
+        logger.info('ℹ️ Donation total is below threshold. No usage fee applied.', {
+          totalDonation,
+          threshold,
+        });
+        console.log('ℹ️ Donation total is below threshold. No usage fee applied.', {
+          totalDonation,
+          threshold,
+        });
+
+        await donationDoc.save();
+        console.log('💾 Donation document saved (below threshold).');
+      }
+    }
 
     logger.info('DonateMe items auto-fulfilled successfully', {
       shop,
