@@ -1,3 +1,175 @@
+// import {
+//   Page,
+//   Card,
+//   Layout,
+//   Select,
+//   Checkbox,
+//   Button,
+//   Text,
+//   Link,
+// } from "@shopify/polaris";
+// import { title } from "process";
+// import { useState, useCallback, useEffect } from "react";
+
+// export function StoreSettings() {
+//   const [settings, setSettings] = useState({
+//     postPurchaseProduct: "",
+//     autoFulfillOrders: false,
+//     requireShipping: false,
+//     applySalesTax: false,
+//   });
+//   const [isSaving, setIsSaving] = useState(false);
+//   const [products, setProducts] = useState([]);
+
+//   useEffect(() => {
+//     fetchSettings();
+//     fetchProducts();
+//   }, []);
+
+//   const fetchSettings = async () => {
+//     try {
+//       const response = await fetch("/api/setting");
+//       if (response.ok) {
+//         const data = await response.json();
+//         setSettings(data);
+//       }
+//     } catch (error) {
+//       console.error("Error fetching settings:", error);
+//     }
+//   };
+
+//   const fetchProducts = async () => {
+//     try {
+//       const response = await fetch("/api/get-products");
+//       if (response.ok) {
+//         const data = await response.json();
+//         setProducts(data);
+//       }
+//     } catch (error) {
+//       console.error("Error fetching products:", error);
+//     }
+//   };
+
+//   const handleSave = async () => {
+//     setIsSaving(true);
+//     try {
+//       const response = await fetch("/api/setting", {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify(settings),
+//       });
+//       if (!response.ok) throw new Error("Failed to save settings");
+//     } catch (error) {
+//       console.error("Error saving settings:", error);
+//     } finally {
+//       setIsSaving(false);
+//     }
+//   };
+
+//   return (
+//     <Page title="General Settings">
+//       <Layout>
+//         <Layout.Section>
+//           <form
+//             onSubmit={(e) => {
+//               e.preventDefault();
+//               handleSave();
+//             }}
+//           >
+//             <Card>
+//               <div className="Polaris-Card__Section">
+//                 <Text variant="headingMd" as="h2">
+//                   Post-Purchase Product
+//                 </Text>
+//                 {/* <Select
+//                   label="Select a donation product that will be displayed as the post-purchase donation request."
+//                   options={[
+//                     { label: "None", value: "" },
+//                     ...products?.map((p: any) => ({
+//                       label: p.title,
+//                       value: p.id,
+//                     })),
+//                   ]}
+//                   value={settings.postPurchaseProduct}
+//                   onChange={(value: string) =>
+//                     setSettings({ ...settings, postPurchaseProduct: value })
+//                   }
+//                   helpText="The default option is the original donation product."
+//                 /> */}
+//               </div>
+//             </Card>
+
+//             <div className="Polaris-Card__Section">
+//               <Text variant="headingMd" as="h2">
+//                 Auto Fulfil Donation Orders
+//               </Text>
+//               <Checkbox
+//                 label="Auto Fulfil Orders"
+//                 checked={settings.autoFulfillOrders}
+//                 onChange={(checked) =>
+//                   setSettings({ ...settings, autoFulfillOrders: checked })
+//                 }
+//                 helpText={
+//                   <>
+//                     Automatically mark all donations as fulfilled.{" "}
+//                     <Link url="#">What's this?</Link>
+//                   </>
+//                 }
+//               />
+//             </div>
+
+//             <div className="Polaris-Card__Section">
+//               <Text variant="headingMd" as="h2">
+//                 Apply Shipping
+//               </Text>
+//               <Checkbox
+//                 label="Donation Products Require Shipping"
+//                 checked={settings.requireShipping}
+//                 onChange={(checked) =>
+//                   setSettings({ ...settings, requireShipping: checked })
+//                 }
+//                 helpText={
+//                   <>
+//                     Donations do not require shipping in the cart by default.
+//                     Change this behaviour here.{" "}
+//                     <Link url="#">What's this?</Link>
+//                   </>
+//                 }
+//               />
+//             </div>
+
+//             <div className="Polaris-Card__Section">
+//               <Text variant="headingMd" as="h2">
+//                 Sales Tax
+//               </Text>
+//               <Checkbox
+//                 label="Add Sales Tax to Donation Products"
+//                 checked={settings.applySalesTax}
+//                 onChange={(checked) =>
+//                   setSettings({ ...settings, applySalesTax: checked })
+//                 }
+//                 helpText={
+//                   <>
+//                     Include Sales Tax on your Donation orders.{" "}
+//                     <Link url="#">What's this?</Link>
+//                   </>
+//                 }
+//               />
+//             </div>
+
+//             <div className="Polaris-Card__Section"></div>
+//             <Button variant="primary" submit loading={isSaving}>
+//               Save
+//             </Button>
+//           </form>
+//         </Layout.Section>
+//       </Layout>
+//     </Page>
+//   );
+// }
+
 import React, { useEffect, useState } from 'react';
 import {
   Card,  
@@ -8,21 +180,15 @@ import {
   InlineStack,
   BlockStack,
   InlineGrid,
-  DataTable,
-  Tooltip,
-  Icon,
+  DataTable
 } from '@shopify/polaris';
 import RichTextEditor from './RichTextEditor';
 import { useNavigate } from '@remix-run/react';
-import {  InfoIcon } from '@shopify/polaris-icons';
 import Loader from "./Loader";
 import toast, { Toaster } from 'react-hot-toast';
-import usePlan from 'app/context/PlanContext';
-
-import "../css/style.css";
+// import '../css/manageproduct.css';
 
 interface EmailConfigFormData {
-  subject: string;
   cc?: string[];
   template?: string;
 }
@@ -33,10 +199,9 @@ interface StoreSettingsProps {
 export default function StoreSettings({ onTabChange }: StoreSettingsProps) {
   const [autoFulfill, setAutoFulfill] = useState(false);
   
-  // const handleToggle = () => setAutoFulfill(!autoFulfill);
+  const handleToggle = () => setAutoFulfill(!autoFulfill);
   const [addSalesTax, setAddSalesTax] = useState(false);
   const [requireShipping, setRequireShipping] = useState(false);
-  const [isEmailActive, setIsEmailActive] = useState(true);
   const [fromEmail, setFromEmail] = useState('shop@partners-donation.myshopify.com');
   const [ccEmail, setCcEmail] = useState('');
   const [emailTemplate, setEmailTemplate] = useState('');
@@ -46,43 +211,22 @@ export default function StoreSettings({ onTabChange }: StoreSettingsProps) {
     ccEmail: ''
   });
   const [loading, setLoading] = useState(true);
-  const [hasInitialized, setHasInitialized] = useState(false);
-  const [tagValue, setTagValue] = useState<string  | undefined>(undefined);
-
-  const { plan } = usePlan();
+const [hasInitialized, setHasInitialized] = useState(false);
   const navigate = useNavigate();
 
-  const [settings, setSettings] = useState<{
-    postPurchaseProduct: string;
-    autoFulfillOrders: boolean;
-    requireShipping: boolean;
-    applySalesTax: boolean;
-    tagValue: string | null;
-    isEmailActive: boolean; // Add this line
-  }>({
+  const [settings, setSettings] = useState({
     postPurchaseProduct: "",
     autoFulfillOrders: false,
     requireShipping: false,
     applySalesTax: false,
-    isEmailActive: false, // Add this line
-    tagValue: null
   });
   
   // Store initial values to detect changes
-  const [initialSettings, setInitialSettings] = useState<{
-    postPurchaseProduct: string;
-    autoFulfillOrders: boolean;
-    requireShipping: boolean;
-    applySalesTax: boolean;
-    tagValue: string | null;
-  isEmailActive: boolean;
-  }>({
+  const [initialSettings, setInitialSettings] = useState({
     postPurchaseProduct: "",
     autoFulfillOrders: false,
     requireShipping: false,
     applySalesTax: false,
-    tagValue: null,
-    isEmailActive: false 
   });
 
   const [initialEmailConfig, setInitialEmailConfig] = useState({
@@ -93,21 +237,15 @@ export default function StoreSettings({ onTabChange }: StoreSettingsProps) {
 
   const [isSaving, setIsSaving] = useState(false);
 
-
-const handleAutoFulfillToggle = () => setAutoFulfill(!autoFulfill);
-const handleSalesTaxToggle = () => setAddSalesTax(!addSalesTax);
-const handleShippingToggle = () => setRequireShipping(!requireShipping);
-const handleEmailActiveToggle = () => setIsEmailActive(!isEmailActive);
-
   // Email validation function
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email?.trim());
+    return emailRegex.test(email.trim());
   };
 
   // Validate single email
   const validateSingleEmail = (email: string, fieldName: string) => {
-    if (!email?.trim()) {
+    if (!email.trim()) {
       setEmailErrors(prev => ({ ...prev, [fieldName]: '' }));
       return true;
     }
@@ -123,7 +261,7 @@ const handleEmailActiveToggle = () => setIsEmailActive(!isEmailActive);
 
   // Validate multiple emails (for CC field)
   const validateMultipleEmails = (emailString: string) => {
-  if (!emailString?.trim()) {
+  if (!emailString.trim()) {
     setEmailErrors(prev => ({ ...prev, ccEmail: '' }));
     return true;
   }
@@ -132,8 +270,8 @@ const handleEmailActiveToggle = () => setIsEmailActive(!isEmailActive);
   
   // Check for duplicates
   const emailSet = new Set();
-  const duplicates: string[] = [];
-
+  const duplicates : string[]= [];
+  
   emails.forEach(email => {
     const lowerEmail = email.toLowerCase();
     if (emailSet.has(lowerEmail)) {
@@ -180,7 +318,7 @@ const handleEmailActiveToggle = () => setIsEmailActive(!isEmailActive);
   };
 
   // Check if there are any email validation errors
- const hasEmailErrors = () => {
+  const hasEmailErrors = () => {
     return emailErrors.fromEmail !== '' || emailErrors.ccEmail !== '';
   };
   
@@ -193,19 +331,14 @@ const handleEmailActiveToggle = () => setIsEmailActive(!isEmailActive);
         setInitialSettings(data);
         
         // Update state values based on fetched settings
-        setAutoFulfill(data?.autoFulfillOrders);
-        setAddSalesTax(data?.applySalesTax);
-        setRequireShipping(data?.requireShipping);
-      setIsEmailActive(data?.isEmailActive !== undefined ? data?.isEmailActive : false); // Set default if not present
-
-      if(plan !== "Free Plan" && plan !== "Bronze Plan"){
-       setTagValue(data.tagValue || undefined);
-      }
+        setAutoFulfill(data.autoFulfillOrders);
+        setAddSalesTax(data.applySalesTax);
+        setRequireShipping(data.requireShipping);
       } else {
         throw new Error( "Failed to fetch settings");
       }
     } catch (error) {
-      console.warn("Error fetching settings:", error);
+      console.error("Error fetching settings:", error);
     toast.error('Failed to load settings. Please refresh the page.', {
       duration: 4000,
       position: 'top-right',
@@ -221,38 +354,28 @@ const handleEmailActiveToggle = () => setIsEmailActive(!isEmailActive);
       const response = await fetch("/api/email");
       if (response.ok) {
         const data = await response.json();
-        if (data?.config) {
-          const ccEmails = data.config.cc ? data.config?.cc.join(', ') : '';
+        if (data.config) {
+          const ccEmails = data.config.cc ? data.config.cc.join(', ') : '';
           setCcEmail(ccEmails);
-          setEmailSubject(data.config?.subject || 'Donation Receipt');
-        // If we have a custom template, use it
-        if (data.config?.templateType === 'custom' && data.config?.template) {
-          setEmailTemplate(data.config?.template);
-        } else {
-          // // Otherwise fetch the default template
-         const simpleTemplate = `
-          <p>Dear {{donor_name}},</p>
-          <p>Thank you for your donation. Your generosity is appreciated! Below are your donation details</p>
-          `;
-          setEmailTemplate(simpleTemplate);
-        }
+          setEmailTemplate(data.config.template || '');
+          
           setInitialEmailConfig({
-            cc: data.config?.cc ? data.config?.cc.join(', ') : '',
-            template: data.config?.template || '',
-            subject: data.config?.subject || 'Donation Receipt'
+            cc: ccEmails,
+            template: data.config.template || '',
+            subject: emailSubject
           });
         }else {
           throw new Error("Email configuration not found");
         }
       }
     } catch (error) {
-    console.warn("Error fetching email config:", error);
+    console.error("Error fetching email config:", error);
     toast.error('Failed to load email configuration. Please refresh the page.', {
       duration: 4000,
       position: 'top-right',
     });
-  }
-};
+    }
+  };
 
   // Update settings when checkboxes change
   useEffect(() => {
@@ -260,11 +383,9 @@ const handleEmailActiveToggle = () => setIsEmailActive(!isEmailActive);
       ...prev,
       autoFulfillOrders: autoFulfill,
       applySalesTax: addSalesTax,
-      requireShipping: requireShipping,
-      tagValue: tagValue || null, // Ensure tagValue is always a string or null
-      isEmailActive: isEmailActive
+      requireShipping: requireShipping
     }));
-  }, [autoFulfill, addSalesTax, requireShipping, tagValue, isEmailActive]);
+  }, [autoFulfill, addSalesTax, requireShipping]);
 
   const hasSettingsChanged = () => {
     return JSON.stringify(settings) !== JSON.stringify(initialSettings);
@@ -307,7 +428,7 @@ const handleEmailActiveToggle = () => setIsEmailActive(!isEmailActive);
       setInitialSettings({ ...settings });
       return true;
     } catch (error) {
-      console.warn("Error saving settings:", error);
+      console.error("Error saving settings:", error);
       return false;
     }
   };
@@ -315,7 +436,6 @@ const handleEmailActiveToggle = () => setIsEmailActive(!isEmailActive);
   const handleSaveEmailConfig = async () => {
     try {
       const emailPayload: EmailConfigFormData = {
-        subject: emailSubject,
         cc: ccEmail ? ccEmail.split(',').map(email => email.trim()).filter(email => email) : [],
         template: emailTemplate,
       };
@@ -340,23 +460,12 @@ const handleEmailActiveToggle = () => setIsEmailActive(!isEmailActive);
       });
       return true;
     } catch (error) {
-      console.warn("Error saving email settings:", error);
+      console.error("Error saving email settings:", error);
       return false;
     }
   };
 
   const handleSaveAll = async () => {
-
-  const settingsChanged = hasSettingsChanged();
-  const emailChanged = hasEmailConfigChanged();
-
-  if (!settingsChanged && !emailChanged) {
-    toast.error('No changes detected to save', {
-      duration: 4000,
-      position: 'top-right',
-    });
-    return;
-  }
 
     const fromEmailValid = validateSingleEmail(fromEmail, 'fromEmail');
     const ccEmailValid = validateMultipleEmails(ccEmail);
@@ -372,13 +481,23 @@ const handleEmailActiveToggle = () => setIsEmailActive(!isEmailActive);
     setIsSaving(true);
     
     try {
+      const settingsChanged = hasSettingsChanged();
+      const emailChanged = hasEmailConfigChanged();
+
+    if (!settingsChanged && !emailChanged) {
+      toast('No changes detected', {
+        duration: 3000,
+        position: 'top-right',
+      });
+      return;
+    }
       
       const promises = [];
       const saveTypes = [];
 
       if (settingsChanged) {
         promises.push(handleSaveSettings());
-        saveTypes.push('general settings');
+      saveTypes.push('general settings');
       }
       
       if (emailChanged) {
@@ -401,7 +520,7 @@ const handleEmailActiveToggle = () => setIsEmailActive(!isEmailActive);
         duration: 4000,
         position: 'top-right',
       });
-        // console.log("Settings saved successfully");
+        console.log("Settings saved successfully");
         // You can add a toast notification here
       } else {
       const failedCount = results.filter(result => result === false).length;
@@ -409,11 +528,11 @@ const handleEmailActiveToggle = () => setIsEmailActive(!isEmailActive);
         duration: 4000,
         position: 'top-right',
       });
-        console.warn("Some settings failed to save");
+        console.error("Some settings failed to save");
       }
       
     } catch (error) {
-    console.warn("Error saving:", error);
+    console.error("Error saving:", error);
     toast.error('An unexpected error occurred while saving settings', {
       duration: 4000,
       position: 'top-right',
@@ -433,7 +552,7 @@ const handleEmailActiveToggle = () => setIsEmailActive(!isEmailActive);
           fetchEmailConfig()
         ]);
       } catch (error) {
-        console.warn("Error loading data:", error);
+        console.error("Error loading data:", error);
       } finally {
         setLoading(false);
         setHasInitialized(true);
@@ -442,15 +561,7 @@ const handleEmailActiveToggle = () => setIsEmailActive(!isEmailActive);
   
   loadData();
 
-}, [plan]);
-
-useEffect(() => {
-  // Clear tagValue when plan changes to Free or Bronze
-  if (plan === 'Free Plan' || plan === 'Bronze Plan') {
-    setTagValue(undefined);
-  }
-  // console.log("Plan changed to:", plan);
-}, [plan]);
+}, []);
 
   if (loading) {
     return (
@@ -459,29 +570,6 @@ useEffect(() => {
       </div>
     );
   }
-
-const createSliderStyle = (isActive: boolean): React.CSSProperties => ({
-  position: "absolute",
-  cursor: "pointer",
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundColor: isActive ? "#6C8ED0" : "#ccc",
-  transition: "0.4s",
-  borderRadius: "34px",
-});
-
-const createSliderBefore = (isActive: boolean): React.CSSProperties => ({
-  position: "absolute",
-  height: "18px",
-  width: "18px",
-  left: isActive ? "22px" : "4px",
-  bottom: "3px",
-  backgroundColor: "white",
-  transition: "0.4s",
-  borderRadius: "50%",
-});
 
  const switchWrapper: React.CSSProperties = {
     display: "flex",
@@ -504,149 +592,226 @@ const createSliderBefore = (isActive: boolean): React.CSSProperties => ({
     height: 0,
   };
 
+  const sliderStyle: React.CSSProperties = {
+    position: "absolute",
+    cursor: "pointer",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: autoFulfill ? "#008060" : "#ccc",
+    transition: "0.4s",
+    borderRadius: "34px",
+  };
+
+  const sliderBefore: React.CSSProperties = {
+    position: "absolute",
+    height: "18px",
+    width: "18px",
+    left: autoFulfill ? "22px" : "4px",
+    bottom: "3px",
+    backgroundColor: "white",
+    transition: "0.4s",
+    borderRadius: "50%",
+  };
   
 
   return (
-    <Box background="bg-surface" paddingBlock="400">
-
-      <Toaster />
-      <Loader show={isSaving} />
-      <div className="container">
-        <div className="d-flex flex-wrap justify-content-between align-items-center">
-          <Text as="h2" variant="headingXl">
-            General Settings
-          </Text>
-        </div>
-        <Box paddingBlockEnd="400" paddingBlockStart="200">
-          <Box borderWidth="025" borderColor="border" borderRadius="200">
-            <Box padding="400">
-              <Text as="h1" variant="headingMd">
-                Auto Fulfil Donation Orders
-              </Text>
-
-              <div style={switchWrapper}>
-                <label style={switchStyle}>
-                  <input
-                    type="checkbox"
-                    checked={autoFulfill}
-                    onChange={handleAutoFulfillToggle}
-                    style={inputStyle}
-                  />
-                  <span style={createSliderStyle(autoFulfill)}>
-                    <span style={createSliderBefore(autoFulfill)}></span>
-                  </span>
-                </label>
-
-
-                <Text as="p" variant="bodyLg">
-                  Auto Fulfil Orders
-                  <Tooltip content="Automatically mark all donations as fulfilled.">
-                    <span style={{ marginLeft: '4px', display: 'inline-flex', verticalAlign: 'middle' }}>
-                      <Icon source={InfoIcon} />
-                    </span>
-                  </Tooltip>
-                </Text>
+      <Box background="bg-surface" paddingBlock="400">
+        
+        <Toaster />
+        <div className="container">
+          {/* Header */}
+          <div className="d-flex flex-wrap justify-content-between align-items-center">
+            <Text as="h2" variant="headingXl">
+              General Settings
+            </Text>
+            {/* <Box paddingBlock="200">
+              <div
+                style={{
+                  background: "#ECF1FB",
+                  borderRadius: "6px",
+                  padding: "12px 16px",
+                  width: "fit-content",
+                  cursor:"pointer"
+                }}
+              >
+                <InlineStack gap="200" blockAlign="center">
+                  <Text as="span" variant="headingMd" fontWeight="medium">
+                    Post-Purchase Product
+                  </Text>
+                </InlineStack>
               </div>
+            </Box> */}
+          </div>
+          {/* Auto Fulfil Donation Orders */}
+          {/* <Box paddingBlockEnd="400" paddingBlockStart="200">
+            <Box borderWidth="025" borderColor="border" borderRadius="200">
+              <Box padding="400">
+                <Text as="h1" variant="headingMd">
+                  Auto Fulfil Donation Orders
+                </Text>
+                <Checkbox
+                  label="Auto Fulfil Orders"
+                  checked={autoFulfill}
+                  onChange={setAutoFulfill}
+                />
+                <Box paddingInlineStart="600">
+                  <Text as="p" variant="bodySm" tone="subdued">
+                    Automatically mark all donations as fulfilled.{" "}
+                    <a href="#">What’s this?</a>
+                  </Text>
+                </Box>
+              </Box>
             </Box>
-          </Box>
-        </Box>
+          </Box> */}
+          <Box paddingBlockEnd="400" paddingBlockStart="200">
+      <Box borderWidth="025" borderColor="border" borderRadius="200">
+        <Box padding="400">
+           <Text as="h1" variant="headingMd">
+                  Auto Fulfil Donation Orders
+                </Text>
           
-        <Box paddingBlockEnd="400">
-          <Box borderWidth="025" borderColor="border" borderRadius="200">
-            <Box padding="400">
-              <Text as="h1" variant="headingMd">
-                Sales Tax
-              </Text>
-              <div style={switchWrapper}>
+          <div style={switchWrapper}>            
+            <label style={switchStyle}>
+              <input
+                type="checkbox"
+                checked={autoFulfill}
+                onChange={handleToggle}
+                style={inputStyle}
+              />
+              <span style={sliderStyle}>
+                <span style={sliderBefore}></span>
+              </span>
+            </label>
 
-                <label style={switchStyle}>
-                  <input
-                    type="checkbox"
-                    checked={addSalesTax}
-                    onChange={handleSalesTaxToggle}
-                    style={inputStyle}
-                  />
-                  <span style={createSliderStyle(addSalesTax)}>
-                    <span style={createSliderBefore(addSalesTax)}></span>
-                  </span>
-                </label>
-                <Text as="p" variant="bodyLg">
-                  Add Sales Tax to Donation Products
-                  <Tooltip content="Include Sales Tax on your Donation orders.">
-                    <span style={{ marginLeft: '4px', display: 'inline-flex', verticalAlign: 'middle' }}>
-                      <Icon source={InfoIcon} />
-                    </span>
-                  </Tooltip>
-                </Text>
-              </div>
-            </Box>
-          </Box>
-        </Box>
+           
+            <Text as="p" variant="bodyLg">
+              Auto Fulfil Orders
+            </Text>
+          </div>
+
           
-        <Box paddingBlockEnd="800">
-          <Box borderWidth="025" borderColor="border" borderRadius="200">
-            <Box padding="400">
-              <Text as="h1" variant="headingMd">
-                Apply Shipping
-              </Text>
-              <div style={switchWrapper}>
-
-                <label style={switchStyle}>
-                  <input
-                    type="checkbox"
-                    checked={requireShipping}
-                    onChange={handleShippingToggle}
-                    style={inputStyle}
-                  />
-                  <span style={createSliderStyle(requireShipping)}>
-                    <span style={createSliderBefore(requireShipping)}></span>
-                  </span>
-                </label>
-
-
-                <Text as="p" variant="bodyLg">
-                  Donation Products Require Shipping
-                  <Tooltip content="Donations do not require shipping in the cart by default. Change this behaviour here.">
-                    <span style={{ marginLeft: '4px', display: 'inline-flex', verticalAlign: 'middle' }}>
-                      <Icon source={InfoIcon}  />
-                    </span>
-                  </Tooltip>
-                </Text>
-              </div>
-            </Box>
+          <Box paddingInlineStart="1200">
+            <Text as="p" variant="bodySm" tone="subdued">
+              Automatically mark all donations as fulfilled.{" "}
+              <a href="#">What’s this?</a>
+            </Text>
           </Box>
         </Box>
-
-        <Box paddingBlockEnd="400">
-          <Box borderWidth="025" borderColor="border" borderRadius="200">
-            <Box padding="400">
-              <Text as="h1" variant="headingMd">
-                Email Notifications
-              </Text>
-              <div style={switchWrapper}>
-                <label style={switchStyle}>
-                  <input
-                    type="checkbox"
-                    checked={isEmailActive}
-                    onChange={handleEmailActiveToggle}
-                    style={inputStyle}
-                  />
-                  <span style={createSliderStyle(isEmailActive)}>
-                    <span style={createSliderBefore(isEmailActive)}></span>
-                  </span>
-                </label>
-                <Text as="p" variant="bodyLg">
-                  Send receipt emails to customers
-                  <Tooltip content="Enable or disable sending email receipts to customers when they make a donation.">
-                    <span style={{ marginLeft: '4px', display: 'inline-flex', verticalAlign: 'middle' }}>
-                      <Icon source={InfoIcon}  />
-                    </span>
-                  </Tooltip>
+      </Box>
+    </Box>
+          
+          <Box paddingBlockEnd="400">
+            <Box borderWidth="025" borderColor="border" borderRadius="200">
+              <Box padding="400">
+                <Text as="h1" variant="headingMd">
+                  Sales Tax
                 </Text>
-              </div>
+                {/* <Checkbox
+                  label="Add Sales Tax to Donation Products"
+                  checked={addSalesTax}
+                  onChange={setAddSalesTax}
+                /> */}
+                <div style={switchWrapper}>
+           
+            <label style={switchStyle}>
+              <input
+                type="checkbox"
+                checked={autoFulfill}
+                onChange={handleToggle}
+                style={inputStyle}
+              />
+              <span style={sliderStyle}>
+                <span style={sliderBefore}></span>
+              </span>
+            </label>
+
+            
+            <Text as="p" variant="bodyLg">
+              Add Sales Tax to Donation Products
+            </Text>
+          </div>
+                <Box paddingInlineStart="1200">
+                  <Text as="p" variant="bodySm" tone="subdued">
+                    Include Sales Tax on your Donation orders.{" "}
+                    <a href="#">What’s this?</a>
+                  </Text>
+                </Box>
+              </Box>
             </Box>
           </Box>
-        </Box>
+          
+          <Box paddingBlockEnd="800">
+            <Box borderWidth="025" borderColor="border" borderRadius="200">
+              <Box padding="400">
+                <Text as="h1" variant="headingMd">
+                  Apply Shipping
+                </Text>
+                {/* <Checkbox
+                  label="Donation Products Require Shipping"
+                  checked={requireShipping}
+                  onChange={setRequireShipping}
+                /> */}
+                <div style={switchWrapper}>
+            
+            <label style={switchStyle}>
+              <input
+                type="checkbox"
+                checked={autoFulfill}
+                onChange={handleToggle}
+                style={inputStyle}
+              />
+              <span style={sliderStyle}>
+                <span style={sliderBefore}></span>
+              </span>
+            </label>
+
+            
+            <Text as="p" variant="bodyLg">
+              Donation Products Require Shipping
+            </Text>
+          </div>
+                <Box paddingInlineStart="1200">
+                  <Text as="p" variant="bodySm" tone="subdued">
+                    Donations do not require shipping in the cart by default.
+                    Change this behaviour here. <a href="#">What’s this?</a>
+                  </Text>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+          {/* <Box borderWidth="025" borderColor="border" borderRadius="200">
+            <InlineStack wrap={false} align="start">
+              <Box width="50%" paddingInlineEnd="300" padding="400">
+                <BlockStack gap="200">
+                  <Text variant="headingLg" as="h1">
+                    Order Tagging
+                  </Text>
+                  <Text as="p" variant="bodyMd">
+                    It will automatically add the tags once order will place
+                    with a donation Soft seat for the admin to filter the order
+                    based on the donation tags.
+                  </Text>
+                </BlockStack>
+              </Box>
+              <div style={{ backgroundColor: "#ECF1FB" }}>
+                <Box width="50%" padding="400">
+                  <BlockStack gap="200">
+                    <Text variant="headingLg" as="h1">
+                      Upgrade To Advanced Plan
+                    </Text>
+                    <Text as="p" variant="bodySm">
+                      Click on the upgrade now button and move to the Advanced
+                      Plan. So, you can use the order tagging feature for your
+                      order.
+                    </Text>
+                    <Button>Upgrade New</Button>
+                  </BlockStack>
+                </Box>
+              </div>
+            </InlineStack>
+          </Box> */}
           <Box borderWidth="025" borderColor="border" borderRadius="200">
             <InlineGrid columns={{ xs: 1, md: "5fr 7fr" }} gap="0">
               {/* Left Section */}
@@ -660,32 +825,17 @@ const createSliderBefore = (isActive: boolean): React.CSSProperties => ({
                     with a donation Soft seat for the admin to filter the order
                     based on the donation tags
                   </Text>
-
-                {/* Show input field if plan is not free */}
-                {plan !== 'Free Plan' && plan !== "Bronze Plan" && (
-                  <Box paddingBlockStart="300">
-                    <TextField
-                      label="Tag Value"
-                      value={tagValue}
-                      onChange={(value) => setTagValue(value)}
-                      autoComplete="off"
-                      placeholder="Enter tag value for donation orders"
-                      helpText="This tag will be automatically added to orders containing donations"
-                    />
-                  </Box>
-                )}
                 </BlockStack>
               </Box>
               {/* Right Section */}
-              { (plan !== "Gold Plan" ) &&
               <div style={{ backgroundColor: "#ECF1FB" }}>
                 <Box padding="400">
                   <BlockStack gap="300">
                     <Text variant="headingLg" as="h1">
-                      Upgrade To Gold Plan
+                      Upgrade To Advanced Plan
                     </Text>
                     <Text as="p" variant="bodyLg">
-                      Click on the upgrade now button and move to the Gold
+                      Click on the upgrade now button and move to the Advanced
                       Plan. So, you can use the order tagging feature for your
                       order
                     </Text>
@@ -697,7 +847,6 @@ const createSliderBefore = (isActive: boolean): React.CSSProperties => ({
                   </BlockStack>
                 </Box>
               </div>
-              }
             </InlineGrid>
           </Box>
           <Box paddingBlock="400" paddingBlockStart="600">
@@ -730,7 +879,7 @@ const createSliderBefore = (isActive: boolean): React.CSSProperties => ({
                 value={ccEmail}
                 onChange={handleCcEmailChange}
                 autoComplete="off"
-                error={emailErrors?.ccEmail}
+                error={emailErrors.ccEmail}
                 helpText="You can add multiple emails separated by commas."
               />
               <Text as="p" tone="subdued" variant="bodySm">
@@ -785,6 +934,15 @@ const createSliderBefore = (isActive: boolean): React.CSSProperties => ({
                   ],
                   [
                     <Box key="title-1">
+                      <Text as="span" alignment="center">Donation Details:</Text>
+                    </Box>,
+            
+                    <Box key="status-1">
+                      <Text as="span" alignment="center">{`{{donor_details}}`}</Text>
+                    </Box>,
+                  ],
+                  [
+                    <Box key="title-1">
                       <Text as="span" alignment="center">Date</Text>
                     </Box>,
             
@@ -811,12 +969,11 @@ const createSliderBefore = (isActive: boolean): React.CSSProperties => ({
           </Box>
           <Box paddingBlock="800">
             <InlineStack align="end">
-            <div className={` theme-btn  ${!hasEmailConfigChanged() && !hasSettingsChanged() ? 'gray-current-plan' : ''} `}>
+              <div className="theme-btn">
               <Button 
                 onClick={handleSaveAll}
                 loading={isSaving}
-                disabled={hasEmailErrors() || (!hasSettingsChanged() && !hasEmailConfigChanged())}
-                variant={!hasSettingsChanged() && !hasEmailConfigChanged() ? 'secondary' : 'primary'}
+                disabled={!hasSettingsChanged() && !hasEmailConfigChanged() || hasEmailErrors()}
               >
                 Save Settings
               </Button>

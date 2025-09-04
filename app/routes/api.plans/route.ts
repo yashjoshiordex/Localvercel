@@ -4,6 +4,7 @@ import { getShopSubscription } from "app/server/services/subscription.service";
 import { authenticate } from "app/shopify.server";
 import {logger} from "app/server/utils/logger"; // <-- Add this import
 
+// /api/plans route
 export async function loader({ request }: any) {
     try {
         const { session } = await authenticate.admin(request);

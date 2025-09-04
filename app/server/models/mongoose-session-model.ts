@@ -36,8 +36,5 @@ export interface ISession {
   uninstallTime: Date;
 }
 
-// export const SessionModel =
-//   mongoose.models.Session || mongoose.model("Session", sessionSchema);
-
 export const SessionModel =
-  (mongoose.models && mongoose.models.Session) || mongoose.model("Session", sessionSchema);
+  mongoose.models.Session || mongoose.model("Session", sessionSchema);

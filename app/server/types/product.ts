@@ -8,7 +8,6 @@ export interface CreateProductParams {
   goalAmount?: number | null;
   shop:string
   minimumDonationAmount?: number | null;
-  status: string;
 }
 
 export interface ProductDocument {
@@ -77,7 +76,6 @@ export interface UpdateProductParams {
     price: number;
     goalAmount?: number | null;
     presetValue?: number[] | null;
-    status?: string;
 }
 
 

@@ -8,11 +8,8 @@ import {
 import { connectToDatabase } from "./server/libs/db.server";
 import { MongooseSessionStorage } from "./server/libs/mongoose-session-storage";
 import StoreConfiguration from "./server/models/storeConfiguration";
-import { startDonationResetCron } from "./server/cron/donationReset";
 
-connectToDatabase().then(() => {
-  startDonationResetCron();
-});
+connectToDatabase()
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
   apiSecretKey: process.env.SHOPIFY_API_SECRET || "",
@@ -25,34 +22,22 @@ const shopify = shopifyApp({
   webhooks: {
     ORDERS_CREATE: {
       deliveryMethod: DeliveryMethod.Http,
-      callbackUrl: "/webhooks",
+      callbackUrl: '/webhooks',
     },
     APP_UNINSTALLED: {
       deliveryMethod: DeliveryMethod.Http,
-      callbackUrl: "/webhooks/app/uninstalled",
-    },
-    CUSTOMERS_DATA_REQUEST: {
-      deliveryMethod: DeliveryMethod.Http,
-      callbackUrl: "/webhooks",
-    },
-    CUSTOMERS_REDACT: {
-      deliveryMethod: DeliveryMethod.Http,
-      callbackUrl: "/webhooks",
-    },
-    SHOP_REDACT: {
-      deliveryMethod: DeliveryMethod.Http,
-      callbackUrl: "/webhooks",
+      callbackUrl: '/webhooks/app/uninstalled',
     },
   },
   hooks: {
-    afterAuth: async ({ session, admin }) => {
+    afterAuth: async ({ session }) => {
       console.log("✅ afterAuth triggered for shop:", session.shop);
       try {
         const result = await shopify.registerWebhooks({ session });
         console.log("Webhooks registered:", result);
-
+        
         const existingConfig = await StoreConfiguration.findOne({ shop: session.shop });
-
+        
         if (!existingConfig) {
           console.log("Creating initial store configuration for:", session.shop);
           const newStoreConfig = new StoreConfiguration({

@@ -7,8 +7,6 @@ export interface IEmailConfig extends Document {
   template?: string | null;
   templateType: "default" | "custom";
   isActive: boolean;
-  fromEmail?: string;
-  subject?: string; // Add subject field
   createdAt: Date;
   updatedAt: Date;
 }
@@ -42,20 +40,7 @@ const EmailConfigSchema = new mongoose.Schema<IEmailConfig>({
   },
   isActive: {
     type: Boolean,
-    default: false
-  },
-  fromEmail: {
-    type: String,
-    validate: {
-      validator: function(email: string) {
-        return !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-      },
-      message: 'Invalid from email address'
-    }
-  },
-  subject: {
-    type: String,
-    default: 'Donation Receipt'
+    default: true
   },
   createdAt: {
     type: Date,

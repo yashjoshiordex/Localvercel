@@ -46,5 +46,5 @@ export interface ISubscription extends Document {
 
 /* 🔷 Subscription Model Export     */
 export const Subscription: Model<ISubscription> =
-  (mongoose.models &&mongoose.models.Subscription) ||
+  mongoose.models.Subscription ||
   mongoose.model<ISubscription>('Subscription', subscriptionSchema);

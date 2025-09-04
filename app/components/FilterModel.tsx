@@ -17,8 +17,8 @@ interface FilterModalProps {
 
 const statusOptions = [
   { label: 'All Status', value: '' },
-  { label: 'Active', value: 'ACTIVE' },
-  { label: 'Draft', value: 'DRAFT' },
+  { label: 'Active', value: 'Active' },
+  { label: 'Inactive', value: 'Archived' },
 ];
 
 export default function FilterModal({
@@ -51,6 +51,13 @@ export default function FilterModal({
     >
       <Modal.Section>
         <FormLayout>
+          {/* <Select
+            label="Status"
+            options={statusOptions}
+            value={tempFilterStatus}
+            onChange={setTempFilterStatus}
+          /> */}
+
         <Box>
             <div style={{ maxWidth: "250px", width: "fit-content" }}>
                 <Select

@@ -1,542 +1,170 @@
 <script src="{{ 'donation.js' | asset_url }}" defer></script>
 
 <style>
-  .donation-widget {
-    display: flex;
-    gap: 40px;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-    position: relative;
-  }
-
-  /* Optional: Make it clickable if you want to link to your website */
-  .donation-branding {
-    position: absolute;
-    bottom: 8px;
-    right: 12px;
-    font-size: 10px;
-    color: #888;
-    font-weight: bold;
-    opacity: 0.7;
-    text-decoration: none;
-    z-index: 1;
-    transition: opacity 0.2s ease;
-  }
-
-  .donation-branding:hover {
-    opacity: 1;
-    color: #666;
-  }
-
-  .donate-image-banner-pic {
-    flex: 1;
-    min-width: 300px;
-    max-width: 400px;
-  }
-
-  .donate-content-section {
-    flex: 1;
-    min-width: 280px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .main-heading {
-    color: {{ block.settings.heading_color }};
-    font-size: {{ block.settings.heading_font_size }}px;
-    margin: 0;
-    font-weight: 500;
-    line-height: 1.2;
-  }
-
-  .sub-text {
-    color: {{ block.settings.text_color }};
-    font-size: {{ block.settings.subtext_font_size }}px;
-    line-height: 1.6;
-    margin: 0;
-    word-wrap: break-word;
-    overflow-wrap: anywhere;
-    white-space: normal;
-  }
-
-  .donation-form-section {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .donation-input-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .currency-symbol {
-    font-weight: bold;
-    font-size: 16px;
-    color: {{ block.settings.text_color }};
-  }
-
-  .donation-amount-input {
-    padding: 12px 16px;
-    font-size: 16px;
-    width: 200px;
-    border: 2px solid {{ block.settings.button_border_color }};
-    border-radius: 8px;
-    outline: none;
-    transition: border-color 0.3s ease;
-  }
-
-  .donation-amount-input:focus {
-    border-color: {{ block.settings.button_color }};
-    box-shadow: 0 0 0 3px rgba(108, 142, 208, 0.1);
-  }
-
-  .preset-button {
-    {% if block.settings.enable_gradient %}
-      background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    {% else %}
-      background: #ffffff;
-    {% endif %}
-    color: {{ block.settings.preset_button_text_color }};
-    border: 2px solid {{ block.settings.button_border_color}} !important;
-    padding: 16px 32px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    margin-right: 8px;
-    margin-top: 8px;
-    border-radius: 12px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(108, 142, 208, 0.15);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    min-width: 90px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .preset-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-    transition: left 0.5s;
-    pointer-events: none;
-  }
-
-  .preset-button:hover::before {
-    left: 100%;
-  }
-
-  .preset-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(108, 142, 208, 0.25);
-    border-color: {{ block.settings.button_color }};
-    {% if block.settings.enable_gradient %}
-      background: linear-gradient(135deg, {{ block.settings.button_color }} 0%, {{ block.settings.gradient_end_color }} 100%);
-    {% else %}
-      background: {{ block.settings.button_color }};
-    {% endif %}
-    color: {{ block.settings.preset_button_hover_text_color }};
-  }
-
-  .preset-button:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 10px rgba(108, 142, 208, 0.2);
-  }
-    
-  .preset-button.active {
-    {% if block.settings.enable_gradient %}
-      background: linear-gradient(135deg, {{ block.settings.button_color }} 0%, {{ block.settings.gradient_end_color }} 100%);
-    {% else %}
-      background: {{ block.settings.button_color }};
-    {% endif %}
-    color: {{ block.settings.preset_button_hover_text_color }};
-    border: 2px solid {{ block.settings.button_color}};
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(108, 142, 208, 0.3);
-  }
-
-  .preset-button.active::before {
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  }
-
-  .preset-button-donate {
-    {% if block.settings.enable_gradient %}
-      background: linear-gradient(135deg, {{ block.settings.button_color }} 0%, {{ block.settings.gradient_end_color }} 100%);
-    {% else %}
-      background: {{ block.settings.button_color }};
-    {% endif %}
-    color: {{ block.settings.donate_button_text_color }} !important;
-    border: 2px solid {{ block.settings.donate_button_border_color }} !important;
-    padding: 12px 24px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(108, 142, 208, 0.25);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    position: relative;
-    overflow: hidden;
-    outline: none;
-    width: auto;
-    min-width: 120px;
-    max-width: 200px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-
-  .preset-button-donate:disabled {
-    opacity: 0.7;
-    cursor: not-allowed !important;
-    transform: none !important;
-  }
-
-  .preset-button-donate:disabled:hover {
-    transform: none !important;
-    box-shadow: 0 6px 20px rgba(108, 142, 208, 0.3) !important;
-  }
-
-  .preset-button-donate::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-    transition: left 0.5s;
-    pointer-events: none;
-  }
-
-  .preset-button-donate:hover::before {
-    left: 100%;
-  }
-
-  .preset-button-donate:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(108, 142, 208, 0.4);
-    {% if block.settings.enable_gradient %}
-      background: linear-gradient(135deg, {{ block.settings.gradient_end_color }} 0%, {{ block.settings.button_color }} 100%);
-    {% else %}
-      background: {{ block.settings.button_color }};
-      filter: brightness(1.1);
-    {% endif %}
-    color: {{ block.settings.donate_button_hover_text_color }} !important;
-  }
-
-  .preset-button-donate:active {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 15px rgba(108, 142, 208, 0.3);
-  }
-
-  .preset-button-donate:focus {
-    outline: none;
-    box-shadow: 0 6px 20px rgba(108, 142, 208, 0.4), 0 0 0 3px rgba(108, 142, 208, 0.2);
-  }
-
-  /* Enhanced button container */
-  .preset-buttons-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 15px;
-    padding: 12px;
-    {% if block.settings.enable_gradient %}
-      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    {% else %}
-      background: #f8f9fa;
-    {% endif %}
-    border-radius: 16px;
-    box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
-  }
-
-  /* No product message styling */
-  .no-product-message {
-    padding: 30px 20px;
-    background: #3B86AF;
-    border: 1px solid #2a6a8a;
-    border-radius: 8px;
-    text-align: center;
-    color: #ffffff;
-    font-size: 16px;
-    margin: 20px 0;
-  }
-  
-  .no-product-message strong {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 20px;
-    color: #ffffff;
-  }
-  
-  .no-product-message p {
-    margin: 0;
-    font-size: 14px;
-    color: #e8f4f8;
-  }
-
-  .donation-error {
-    color: red;
-    display: none;
-    margin-top: 10px;
-    font-size: 14px;
-  }
-
-  /* Hidden elements for preset mode */
-  .hidden {
-    display: none !important;
-  }
-
-  @media only screen and (max-width: 768px) {
-    .donation-widget {
-      flex-direction: column;
-      gap: 20px;
-      padding: 15px;
-    }
-
-    .donate-image-banner-pic {
-      min-width: 100%;
-      max-width: 100%;
-    }
-
-    .donate-content-section {
-      min-width: 100%;
-    }
-
-    .donation-input-container {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 8px;
-    }
-
-    .donation-amount-input {
-      width: 100%;
-      max-width: 300px;
-    }
-
-    .preset-button {
-      padding: 14px 20px;
-      font-size: 14px;
-      min-width: 80px;
-      margin-right: 6px;
-    }
-    
-    .preset-button-donate {
-      padding: 16px 32px;
-      font-size: 16px;
-      width: 100%;
-      max-width: 100%;
-    }
-
-    .preset-buttons-container {
-      padding: 10px;
-      gap: 6px;
-    }
-
-    .no-product-message {
-      padding: 25px 15px;
-    }
-    
-    .no-product-message strong {
-      font-size: 18px;
-    }
-  }
-
-  @media only screen and (max-width: 480px) {
-    .preset-button {
-      padding: 12px 16px;
-      font-size: 13px;
-      min-width: 70px;
-      margin-right: 4px;
-    }
-    
-    .preset-buttons-container {
-      justify-content: center;
-    }
-
-    .main-heading {
-      font-size: 20px;
-    }
-
-    .sub-text {
-      font-size: 14px;
-    }
-  }
-
-.donation-widget .donate-me-branding {
-  position: absolute;
-  bottom: 0px;
-  right: 12px;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  font-size: 10px;
-  color: #888;
-  font-weight: bold;
-  opacity: 0.7;
-  text-decoration: none;
-  pointer-events: none;
-  z-index: 1;
+.main-heading {
+  color: {{ block.settings.heading_color }}; 
+  font-size: {{ block.settings.heading_font_size }}px;
 }
-
-  .donation-widget .donate-me-branding::before {
-    content: "Powered by";
-    margin-right: 0px;
-  }
-
-.donation-widget .donate-me-branding img {
-  max-width: 90px;
-  height: auto;
-  max-height: 80px;
-  object-fit: contain;
-  flex-shrink: 0;
+.sub-text{
+   color: {{ block.settings.text_color }};
+   font-size: {{ block.settings.subtext_font_size }}px;
 }
+.preset-button {
+    background-color: {{ block.settings.button_color }};
+    color: #fff;
+    padding: 15px 28px;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    margin-right: 10px;
+    margin-top: 5px;
+    border-radius: 4px;
+  }
 </style>
 
-{% if block.settings.product and block.settings.product != blank %}
+{% if block.settings.product %}
   {% assign selected_product = all_products[block.settings.product] %}
 
-  {% if selected_product and selected_product.id %}
-    <div class="donation-widget">
+  {% if selected_product %}
+    <div class="donation-widget" style="display: flex; gap: 170px; padding: 20px; border: 1px solid #ccc; border-radius: 8px; align-items: flex-start; flex-wrap: wrap;">
+
       {% if block.settings.show_image and selected_product.featured_image %}
-        <div class="donate-image-banner-pic">
+        <div style="flex: 1; min-width: 400px;">
           <img
-            src="{{ selected_product.featured_image | image_url: width: 600 }}"
+            src="{{ selected_product.featured_image | image_url: width: 400 }}"
             alt="Product image"
             width="100%"
-            height="100%"
             style="max-width: 100%; border-radius: 8px;"
           >
         </div>
       {% endif %}
 
-      <div class="donate-content-section">
+      <div style="flex: 2; min-width: 280px;">
         {% if block.settings.show_title %}
-          <h2 class="main-heading">{{ selected_product.title }}</h2>
+          <h2 class="main-heading" style="margin-top: 0;">{{ selected_product.title }}</h2>
         {% endif %}
 
         {% if block.settings.show_description %}
-          <p class="sub-text">{{ selected_product.description | strip_html | truncate: 150 }}</p>
+          <p class="sub-text" style="line-height: 1.6; margin-top: 10px;">
+            {{ selected_product.description | strip_html | truncate: 150 }}
+          </p>
         {% endif %}
 
-        <form id="donate-form" data-product-id="{{ selected_product.id }}" class="donation-form-section">
+        <form id="donate-form" data-product-id="{{ selected_product.id }}" style="margin-top: 40px;">
+          <label for="donation-amount" style="display: block; font-weight: bold; font-size: 16px; margin-bottom: 5px;">
+            Enter Amount
+          </label>
+
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            {% if block.settings.show_currency %}
+              <select style="padding: 5px 10px; font-size: 14px;">
+                <option selected>{{ cart.currency.iso_code }} - $</option>
+              </select>
+            {% endif %}
+
+            <input
+              type="number"
+              id="donation-amount"
+              min="1"
+              step="1"
+              value="{{ block.settings.default_amount }}"
+              required
+              style="padding: 16px 10px; font-size: 18px; width: 140px; border: 1px solid #ccc"
+            >
+
+            
+          </div>
+
           {% assign preset_values = selected_product.metafields.donate.preset_value.value %}
-          {% if preset_values and block.settings.show_presets %}
-            <div class="preset-buttons-container">
+          {% if preset_values %}
+            <div style="margin-top: 10px;">
               {% for amount in preset_values %}
                 <button
                   type="button"
                   class="preset-button"
                   data-amount="{{ amount }}"
+                  
                 >
-                  {% assign amount_as_number = amount | plus: 0.0 %}
-                  {% assign amount_as_int = amount_as_number | floor %}
-                  {% assign decimal_part = amount_as_number | minus: amount_as_int %}
-                  {% if decimal_part == 0 %}
-                    {{ cart.currency.symbol }} {{ amount_as_int }}
-                  {% else %}
-                    {{ cart.currency.symbol }} {{ amount_as_number | round: 2 }}
-                  {% endif %}
+                  {{ amount }}
                 </button>
               {% endfor %}
-              <button
-                  type="button"
-                  class="preset-button"
-                  data-amount="other"
-                  id="other-button"
-                >
-                  Other
-                </button>
-            </div>
-
-            <!-- Input box for preset mode (hidden by default) -->
-            <div class="donation-input-container hidden" id="donation-input-container">
-              <span class="currency-symbol">{{ cart.currency.symbol }}</span>
-              <input
-                  type="number"
-                  id="donation-amount"
-                  class="donation-amount-input"
-                  min="1"
-                  step="1"
-                  value="{{ block.settings.default_amount }}"
-                  placeholder="Enter amount"
-                  required
-                >
-            </div>
-          {% else %}
-            <!-- When preset values are turned off, show input box directly -->
-            <div class="donation-input-container">
-              <span class="currency-symbol">{{ cart.currency.symbol }}</span>
-              <input
-                  type="number"
-                  id="donation-amount-direct"
-                  class="donation-amount-input"
-                  min="1"
-                  step="1"
-                  value="{{ block.settings.default_amount }}"
-                  placeholder="Enter amount"
-                  required
-                >
             </div>
           {% endif %}
-
-          <div
-            id="donation-widget"
-            data-product-id="{{ selected_product.id | json }}"
-            data-api-endpoint="{{ app.metafields.custom.donation_api_url | default: '/apps/donation/create-variant' }}"
-            data-minimum-donation="{{ selected_product.metafields.minimum_donation.minimum_value }}"
-            data-remove-branding="{{ block.settings.remove_branding }}"
-          >
-            <button 
-              id="donate-btn" 
-              class="preset-button-donate"
-              type="button"
-            >
-              {{ block.settings.donate_button_text | default: "Donate" }}
-            </button>
-            <p id="donation-error" class="donation-error"></p>
-          </div>
         </form>
       </div>
-      
-      {% unless block.settings.remove_branding %}
-        <div class="donate-me-branding">
-          <img src="{{ 'donate-me-logo.svg' | asset_url }}" alt="DonateMe" height="100" width="100" loading="lazy">
-        </div>
-      {% endunless %}
     </div>
+    
   {% else %}
-    <!-- Show message when selected product doesn't exist -->
-    <div class="no-product-message">
-      <strong>Product Not Found</strong>
-      <p>The selected product could not be found. Please select a valid donation product in the section settings.</p>
+    <div
+      id="donation-widget"
+      data-product-id="{{ product.id | json }}"
+      data-api-endpoint="{{ app.metafields.custom.donation_api_url | default: '/apps/donation/create-variant' }}"
+    >
+      <input type="number" id="donation-amount" placeholder="Enter donation amount">
+      <button id="donate-btn">Donate</button>
+    </div>
+
+
+    <script>
+      (function () {
+        document.getElementById('donate-btn')?.addEventListener('click', async () => {
+          const amount = document.getElementById('donation-amount').value;
+          const widget = document.getElementById('donation-widget');
+          const productId = widget.dataset.productId;
+          const apiEndpoint = widget.dataset.apiEndpoint;
+
+          if (!amount || isNaN(amount)) {
+            alert('Please enter a valid donation amount');
+            return;
+          }
+
+          try {
+            const res = await fetch(apiEndpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ productId, price: amount }),
+            });
+
+            const data = await res.json();
+            const variantId = data.variantId?.split('/')?.pop();
+
+            if (!variantId) {
+              alert('Something went wrong. Try again.');
+              return;
+            }
+
+            await fetch('/cart/add.js', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ items: [{ id: parseInt(variantId), quantity: 1 }] }),
+            });
+
+            window.location.href = '/cart';
+          } catch (err) {
+            console.error(err);
+            alert('Error occurred. Please try again.');
+          }
+        });
+      })();
+    </script>
+
+    <div style="padding: 1em; background: #fff3cd; border: 1px solid #ffeeba;">
+      The selected product could not be found. Please reselect a valid product in the settings.
     </div>
   {% endif %}
 {% else %}
-  <!-- Show message when no product is selected -->
-  <div class="no-product-message">
-    <strong>No Product Selected</strong>
-    <p>Please select a donation product in the section settings to display the donation widget.</p>
+  <div style="padding: 1em; background: #fff3cd; border: 1px solid #ffeeba;">
+    <strong>No product selected.</strong> Please select a donation product in the section settings.
   </div>
 {% endif %}
 
+<h4 class="text-center my-3">Total Cost Data 89$</h4>
+<div style="background-color: #e0e0e0; border-radius: 10px; height: 40px; width: 100%; margin-top: 10px;">
+    <div style="width: 60%; height: 100%; background-color: red; border-radius: 10px; text-align: center; color: white; line-height: 20px;margin-top:10px">
+      
+    </div>
+  </div>
+  <h4 class="text-center my-3">Total Cost Data 89$</h4>
 {% schema %}
 {
   "name": "Donation Widget",
@@ -548,10 +176,10 @@
       "label": "Select your Donation Product"
     },
     {
-      "type": "text",
-      "id": "donate_button_text",
-      "label": "Donate Button Text",
-      "default": "Donate"
+      "type": "number",
+      "id": "default_amount",
+      "label": "Default Donation Amount",
+      "default": 5
     },
     {
       "type": "checkbox",
@@ -567,6 +195,12 @@
     },
     {
       "type": "checkbox",
+      "id": "show_currency",
+      "label": "Show Currency",
+      "default": false
+    },
+    {
+      "type": "checkbox",
       "id": "show_image",
       "label": "Show Image",
       "default": false
@@ -575,6 +209,12 @@
       "type": "checkbox",
       "id": "show_presets",
       "label": "Show Preset Values",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_recurring",
+      "label": "Display Recurring Options",
       "default": false
     },
     {
@@ -589,7 +229,7 @@
       "label": "Subtext Color",
       "default": "#000000"
     },
-    {
+    { 
       "type": "range",
       "id": "heading_font_size",
       "label": "Heading Font Size",
@@ -610,67 +250,12 @@
       "default": 16
     },
     {
-      "type": "checkbox",
-      "id": "enable_gradient",
-      "label": "Enable Gradient Buttons",
-      "default": true
-    },
-    {
-      "type": "color",
-      "id": "button_color",
-      "label": "Button Background Color (Start Color if Gradient)",
-      "default": "#6C8ED0"
-    },
-    {
-      "type": "color",
-      "id": "gradient_end_color",
-      "label": "Gradient End Color",
-      "default": "#5a7bc8",
-      "info": "Only used when gradient is enabled"
-    },
-    {
-      "type": "color",
-      "id": "button_border_color",
-      "label": "Preset Button Border Color",
-      "default": "#6C8ED0"
-    },
-    {
-      "type": "color",
-      "id": "donate_button_border_color",
-      "label": "Donate Button Border Color",
-      "default": "#6C8ED0"
-    },
-    {
-      "type": "color",
-      "id": "preset_button_text_color",
-      "label": "Preset Button Text Color (Normal State)",
-      "default": "#6C8ED0"
-    },
-    {
-      "type": "color",
-      "id": "preset_button_hover_text_color",
-      "label": "Preset Button Text Color (Hover/Active State)",
-      "default": "#ffffff"
-    },
-    {
-      "type": "color",
-      "id": "donate_button_text_color",
-      "label": "Donate Button Text Color (Normal State)",
-      "default": "#ffffff"
-    },
-    {
-      "type": "color",
-      "id": "donate_button_hover_text_color",
-      "label": "Donate Button Text Color (Hover State)",
-      "default": "#ffffff"
-    },
-    {
-      "type": "checkbox",
-      "id": "remove_branding",
-      "label": "Remove Branding",
-      "default": false,
-      "info": "Remove 'Powered by DonateMe' branding (requires premium plan)"
-    }
+  "type": "color",
+  "id": "button_color",
+  "label": "Button Background",
+  "default": "#000000"
+}
+
   ]
 }
 {% endschema %}

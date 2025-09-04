@@ -1,3 +1,271 @@
+// import {
+//   Page,
+//   Layout,
+//   Card,
+//   Text,
+//   Button,
+//   BlockStack,
+//   InlineGrid,
+//   Box,
+// } from "@shopify/polaris";
+// import "../css/style.css";
+// import { useEffect, useState } from "react";
+// import { Redirect } from "@shopify/app-bridge/actions";
+// import { useAppBridge } from "@shopify/app-bridge-react";
+// import { useNavigate, useSearchParams } from "@remix-run/react";
+// import Loader from "./Loader";
+// import { useLocation } from "@remix-run/react";
+// import { fetchData } from "app/utils/helper";
+// type IProps = {
+//   nextStep?: Function;
+// };
+// interface plans {
+//   _id: string;
+//   id: string;
+//   name: string;
+//   price: number;
+//   trialDays: number;
+//   interval: string;
+//   features: string[];
+//   popular?: boolean;
+// }
+// export interface Subscription {
+//   _id: string;
+//   shop: string;
+//   planId: string;
+//   chargeId: string;
+//   status: "active" | "inactive" | "cancelled" | string; // Add other possible statuses as needed
+//   currentPeriodEnd: string; // ISO date string
+//   createdAt: string; // ISO date string
+//   updatedAt: string; // ISO date string
+//   __v: number;
+//   id: string;
+// }
+
+// export default function SelectPlan({ nextStep }: IProps) {
+//   const location = useLocation();
+//   const isProductPage = location.pathname === "/app/plans";
+
+//   const navigate = useNavigate();
+//   const [searchParams] = useSearchParams();
+
+//   const app: any = useAppBridge();
+//   const [plans, setPlans] = useState<any>();
+//   const [seletedPlan, setSelectedPlan] = useState<{
+//     planId: string,
+//     planPrice: number | null
+//   }>({
+//     planId: "",
+//     planPrice: null
+//   });
+//   const [currentPlan, setcurrentPlan] = useState<Subscription>();
+//   const [loader, setLoader] = useState<boolean>(false);
+//   const [btnLoader, setBtnLoader] = useState({
+//     id: "",
+//     toggle: false,
+//   });
+
+//   const chargeId = searchParams.get("charge_id");
+//   const planId = searchParams.get("plan") || seletedPlan;
+
+//   const fetchPlans = async () => {
+//     try {
+//       const response = await fetch("/api/plans");
+//       const data = await response.json();
+//       if (data?.plans) {
+//         setPlans(
+//           data.plans.sort((a: plans, b: plans) => {
+//             return a.price - b.price;
+//           }),
+//         );
+//         setcurrentPlan(data?.currentSubscription);
+//         setLoader(false);
+//       } else {
+//         console.log("somthing went wrong");
+//       }
+//     } catch {
+//       setLoader(false);
+//       console.error("somthing went wrong");
+//     }
+//   };
+
+
+//   const fetchSubscriptionDetails = async () => {
+//     try {
+//       const response = await fetch(
+//         `/api/get-subscription?charge_id=${chargeId}&plan=${planId}`,
+//       );
+//       const data = await response.json();
+
+//       if (response.ok) {
+//         fetchPlans();
+//       } else {
+//         console.log("Failed to fetch subscription details.");
+//       }
+//     } catch (err) {
+//       console.error(`An unexpected error occurred: ${(err as Error).message}`);
+//     } finally {
+//       console.log(false);
+//     }
+//   };
+
+//   const handleSubmit = async (planId: string) => {
+//     try {
+//       setLoader(true);
+//       setBtnLoader({ id: planId, toggle: true });
+
+//       const url = `/api/billing-start/?plan=${planId}&isSetting=${isProductPage ? true : false}`
+//       const response = await fetch(url);
+//       const data = await response.json();
+
+//       const confirmationUrl = data?.confirmationUrl;
+//       // Navigate to Thank you page if it's a free plan
+//       if (data?.plan?.isFree) {
+//         setLoader(true);
+//         setBtnLoader({ ...btnLoader, toggle: false });
+//         if (isProductPage) {
+//           return navigate(`/app/planconfirmation/?plan=${planId}`);
+//           // fetchSubscriptionDetails(); // Call fetchData only in product page
+//         } else {
+//           return navigate(`/app/thankyou/?plan=${planId}`);
+//         }
+//       }
+
+//       // Navigate to confiramtion page if it isn't free plan
+//       if (confirmationUrl) {
+//         const redirect = Redirect.create(app);
+
+//         if (redirect && typeof redirect.dispatch === "function") {
+//           try {
+//             redirect.dispatch(Redirect.Action.REMOTE, confirmationUrl);
+//           } catch (error) {
+//             console.error(
+//               "App Bridge redirect failed. Falling back to native redirect.",
+//               error,
+//             );
+//             safeRedirect(confirmationUrl);
+//           }
+//         } else {
+//           console.warn(
+//             "App Bridge Redirect unavailable. Using fallback redirect.",
+//           );
+//           safeRedirect(confirmationUrl);
+//         }
+//       } else {
+//         console.error("Subscription failed: Missing confirmation URL.");
+//         setBtnLoader({ id: planId, toggle: false });
+//       }
+//     } catch (error) {
+//       console.error("Failed to initiate billing:", error);
+//     } finally {
+//       setLoader(false);
+//     }
+//   };
+
+//   function safeRedirect(url: string) {
+//     if (typeof window !== "undefined" && window.top) {
+//       window.top.location.href = url;
+//     } else {
+//       window.location.href = url;
+//     }
+//     setLoader(false);
+//   }
+
+//   useEffect(() => {
+//     setLoader(true);
+//     fetchPlans();
+//     !(seletedPlan.planPrice === null) && fetchSubscriptionDetails();
+//   }, []);
+
+//   return (
+//     <>
+//       {loader || btnLoader.toggle ? (
+//         <Loader />
+//       ) : (
+//         <Page>
+//           <Layout>
+//             <Layout.Section>
+//               <Box>
+//                 <div className="d-flex mb-3 justify-content-between">
+//                   <Text variant="headingLg" as="h2">
+//                     Select Plan
+//                   </Text>
+//                   {!isProductPage && (
+//                     <div>
+//                       <Button
+//                         variant="primary"
+//                         onClick={() => handleSubmit(plans[0]?._id)}
+//                         disabled={loader}
+//                       >
+//                         Continue Without Changes
+//                       </Button>
+//                     </div>
+//                   )}
+//                 </div>
+//               </Box>
+
+
+//               <InlineGrid columns={{ xs: 1, sm: 2, md: 3, lg: 4 }} gap="400">
+//                 {plans?.map((plan: any, id: any) => (
+//                   <Card key={plan._id} roundedAbove="sm" padding="400">
+//                     <BlockStack gap="300">
+//                       <Text variant="headingMd" as="h2">
+//                         {plan.name}
+//                       </Text>
+
+//                       <Text variant="headingMd" as="h2">
+//                         {plan.price}
+//                         <Text as="span" tone="subdued" variant="bodyMd">
+//                           /month
+//                         </Text>
+//                       </Text>
+
+//                       <Text as="p" variant="bodyMd" fontWeight="bold">
+//                         {plan.note}
+//                       </Text>
+//                       <Text tone="subdued" as="p" variant="bodyMd">
+//                         {plan.subNote}
+//                       </Text>
+//                       <Box>
+//                         <ul className="mb-5">
+//                           {plan.features.map((feature: any, index: any) => (
+//                             <li key={index}>
+//                               <Text as="p" variant="bodyMd">
+//                                 {feature}
+//                               </Text>
+//                             </li>
+//                           ))}
+//                         </ul>
+//                       </Box>
+//                       <div className="bottom-button ">
+//                         <Button
+//                           variant="primary"
+//                           fullWidth
+//                           onClick={() => {
+//                             plan.price === 0 && setSelectedPlan({ planId: plan._id, planPrice: null });
+//                             handleSubmit(plan._id)
+//                           }}
+//                           // disabled={plan.price === 0 || loader}
+//                           disabled={currentPlan?.planId
+//                             ? plan._id === currentPlan?.planId!
+//                             : plan.price === 0}
+//                           loading={btnLoader.id === plan._id && btnLoader.toggle}
+//                         >
+//                           Select
+//                         </Button>
+//                       </div>
+//                     </BlockStack>
+//                   </Card>
+//                 ))}
+//               </InlineGrid>
+//             </Layout.Section>
+//           </Layout>
+//         </Page>
+//       )}
+//     </>
+//   );
+// }
+
 import {
   Layout,
   Card,
@@ -17,7 +285,10 @@ import { useAppBridge } from "@shopify/app-bridge-react";
 import {  useSearchParams } from "@remix-run/react";
 import Loader from "./Loader";
 import toast, { Toaster } from 'react-hot-toast';
+// import { fetchData } from "app/utils/helper";
+// import "../css/changeplan.css";
 import truesign from "../assets/images/truesignIocn.svg";
+// import Header from "./Header";
 type IProps = {
   nextStep?: Function;
   onTabChange?: (tab: string) => void; // Add this
@@ -46,6 +317,11 @@ export interface Subscription {
 }
 
 export default function SelectPlan({ nextStep, onTabChange }: IProps) {
+  // const location = useLocation();
+  // const isProductPage = location.pathname === "/app/plans";
+
+
+  // const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const app: any = useAppBridge();
@@ -66,8 +342,8 @@ export default function SelectPlan({ nextStep, onTabChange }: IProps) {
 
 const [hasInitialized, setHasInitialized] = useState(false);
 
-  const chargeId = searchParams?.get("charge_id");
-  const planId = searchParams?.get("plan") || seletedPlan;
+  const chargeId = searchParams.get("charge_id");
+  const planId = searchParams.get("plan") || seletedPlan;
 
   const fetchPlans = async () => {
     try {
@@ -80,19 +356,19 @@ const [hasInitialized, setHasInitialized] = useState(false);
       const data = await response.json();
       if (data?.plans) {
         setPlans(
-          data?.plans.sort((a: plans, b: plans) => {
+          data.plans.sort((a: plans, b: plans) => {
             return a.price - b.price;
           }),
         );
         setcurrentPlan(data?.currentSubscription);
         setLoader(false);
       } else {
-        console.warn("something went wrong");
+        console.log("somthing went wrong");
         throw new Error('Invalid response structure');
       }
     } catch {
       setLoader(false);
-      console.warn("somthing went wrong");
+      console.error("somthing went wrong");
       toast.error('Failed to load plans. Please refresh the page.', {
         duration: 4000,
         position: 'top-right',
@@ -115,11 +391,11 @@ const [hasInitialized, setHasInitialized] = useState(false);
         });
         fetchPlans();
       } else {
-        console.warn("Failed to fetch subscription details.");
+        console.log("Failed to fetch subscription details.");
         throw new Error(data.message || 'Failed to fetch subscription details');
       }
     } catch (err) {
-      console.warn(`An unexpected error occurred: ${(err as Error).message}`);
+      console.error(`An unexpected error occurred: ${(err as Error).message}`);
       toast.error('Failed to fetch subscription details. Please try again.', {
         duration: 4000,
         position: 'top-right',
@@ -154,6 +430,12 @@ const [hasInitialized, setHasInitialized] = useState(false);
         setLoader(true);
         setBtnLoader({ ...btnLoader, toggle: false });
 
+        // if (isProductPage) {
+        //   return navigate(`/app/planconfirmation/?plan=${planId}`);
+        //   // fetchSubscriptionDetails(); // Call fetchData only in product page
+        // } else {
+        //   return navigate(`/app/thankyou/?plan=${planId}`);
+        // }
 
         // Always redirect to MainApp with planconfirmation tab
         if (onTabChange && typeof onTabChange === 'function') {
@@ -175,11 +457,11 @@ const [hasInitialized, setHasInitialized] = useState(false);
           newUrl.searchParams.set('plan', planId);
           newUrl.searchParams.set('name', 'free');
           // newUrl.searchParams.delete('charge_id'); // Remove charge_id if it exists
-          // console.log('Setting new URL for free plan:', newUrl.toString());
+          console.log('Setting new URL for free plan:', newUrl.toString());
           window.history.replaceState({}, '', newUrl.toString());
 
 
-          // console.log('Switching to planconfirmation tab in MainApp');
+          console.log('Switching to planconfirmation tab in MainApp');
           setTimeout(() => {
             onTabChange('planconfirmation');
           }, 10);
@@ -195,6 +477,10 @@ const [hasInitialized, setHasInitialized] = useState(false);
       // Navigate to confiramtion page if it isn't free plan
       if (confirmationUrl) {
 
+        toast.success('Redirecting to payment...', {
+          duration: 3000,
+          position: 'top-right',
+        });
 
         const redirect = Redirect.create(app);
 
@@ -202,7 +488,7 @@ const [hasInitialized, setHasInitialized] = useState(false);
           try {
             redirect.dispatch(Redirect.Action.REMOTE, confirmationUrl);
           } catch (error) {
-            console.warn(
+            console.error(
               "App Bridge redirect failed. Falling back to native redirect.",
               error,
             );
@@ -215,7 +501,7 @@ const [hasInitialized, setHasInitialized] = useState(false);
           safeRedirect(confirmationUrl);
         }
       } else {
-        console.warn("Subscription failed: Missing confirmation URL.");
+        console.error("Subscription failed: Missing confirmation URL.");
         toast.error('Failed to process subscription. Please try again.', {
           duration: 4000,
           position: 'top-right',
@@ -223,7 +509,7 @@ const [hasInitialized, setHasInitialized] = useState(false);
         setBtnLoader({ id: planId, toggle: false });
       }
     } catch (error) {
-      console.warn("Failed to initiate billing:", error);
+      console.error("Failed to initiate billing:", error);
       toast.error('An error occurred while processing your request. Please try again.', {
         duration: 4000,
         position: 'top-right',
@@ -273,6 +559,17 @@ const [hasInitialized, setHasInitialized] = useState(false);
                         Change Plan
                       </Text>
 
+                      {/* {!isProductPage && (
+                        <div>
+                          <Button
+                            variant="primary"
+                            onClick={() => handleSubmit(plans[0]?._id)}
+                            disabled={loader}
+                          >
+                            Continue Without Changes
+                          </Button>
+                        </div>
+                      )} */}
                     </div>
                     <div className="mb-4">
                       <Text as="p" variant="headingLg" fontWeight="regular">
@@ -286,9 +583,9 @@ const [hasInitialized, setHasInitialized] = useState(false);
                     gap="400"
                   >
                     {plans?.map((plan: any, id: any) => {
-                      const isCurrentPlan = currentPlan?.planId === plan?._id;
+                      const isCurrentPlan = currentPlan?.planId === plan._id;
                       return (
-                        <Card key={plan?._id} padding="400" 
+                        <Card key={plan._id} padding="400" 
                         background={isCurrentPlan ? "bg-surface-secondary" : undefined}
 >
                         <BlockStack gap="200">
@@ -298,7 +595,7 @@ const [hasInitialized, setHasInitialized] = useState(false);
                               as="h2"
                               alignment="center"
                             >
-                              {plan?.name}
+                              {plan.name}
                             </Text>
 
                               <div>
@@ -318,7 +615,7 @@ const [hasInitialized, setHasInitialized] = useState(false);
                                   </span>
                                 )}
 
-                                {plan?.popular && !isCurrentPlan && (
+                                {plan.popular && !isCurrentPlan && (
                                   <span 
                                     style={{ 
                                       backgroundColor: "#007bff", 
@@ -337,23 +634,42 @@ const [hasInitialized, setHasInitialized] = useState(false);
                            </InlineStack>
 
 
-                          <span className="freeplan-custom-btn mt-3">
+                          <span className="freeplan-custom-btn">
                             <Text
                               as="span"
                               variant="headingLg"
                               alignment="center"
                             >
-                              ${plan?.price}
+                              ${plan.price}
                               <span className=""> /month</span>
                             </Text>
                           </span>
 
                             <Text as="p" variant="bodyMd" fontWeight="bold">
-                              {plan?.note}
+                              {plan.note}
                             </Text>
                             <Text tone="subdued" as="p" variant="bodyMd">
-                              {plan?.subNote}
+                              {plan.subNote}
                             </Text>
+                            {/* <Box>
+                        <ul className="mb-5 p-0 ps-3 pb-3">
+                          {plan.features.map((feature: any, index: any) => (
+                            <li key={index} className="custom-li">
+                              <div className="freeplan-feature py-1 d-flex">
+                                <img
+                                  src={truesign}
+                                  alt="tick icon"
+                                  className="me-2"
+                                  style={{ width: "16px", height: "16px", marginTop: "4px" }}
+                                />
+                              <Text as="p" variant="bodyMd">
+                                {feature}
+                              </Text>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </Box> */}
                             <Box
                               as="ul"
                               padding="0"
@@ -362,7 +678,7 @@ const [hasInitialized, setHasInitialized] = useState(false);
                               paddingBlockEnd="800"
                               
                             >
-                              {plan?.features.map(
+                              {plan.features.map(
                                 (feature: any, index: number) => (
                                   <Box as="li" key={index} paddingBlock="100" paddingInlineStart="600">
                                     <div className="freeplan-feature py-1 d-flex align-items-start">
@@ -384,26 +700,55 @@ const [hasInitialized, setHasInitialized] = useState(false);
                                 ),
                               )}
                             </Box>
+                            {/* <div className="bottom-button select-freeplan-btn px-4">
+                              <Button
+                                fullWidth
+                                onClick={() => {
+                                  plan.price === 0 &&
+                                    setSelectedPlan({
+                                      planId: plan._id,
+                                      planPrice: null,
+                                    });
+                                  handleSubmit(plan._id);
+                                }}
+                                // disabled={plan.price === 0 || loader}
+                                disabled={
+                                  currentPlan?.planId
+                                    ? plan._id === currentPlan?.planId!
+                                    : plan.price === 0
+                                }
+                                loading={
+                                  btnLoader.id === plan._id && btnLoader.toggle
+                                }
+                              >
+                                Select
+                              </Button>
+                            </div> */}
+
+                            {/* Select Button at Bottom */}
                             <Box paddingBlockStart="800">
-
-                              <div className={`bottom-button select-freeplan-btn ${isCurrentPlan ? 'gray-current-plan' : ''}`}>
-
+                              <div className="bottom-button select-freeplan-btn">
                                 <Button
                                   fullWidth
                                   variant={isCurrentPlan ? "secondary" : "primary"}
                                   onClick={() => {
-                                    if (plan?.price === 0) {
+                                    if (plan.price === 0) {
                                       setSelectedPlan({
-                                        planId: plan?._id,
+                                        planId: plan._id,
                                         planPrice: null,
                                       });
                                     }
-                                    handleSubmit(plan?._id);
+                                    handleSubmit(plan._id);
                                   }}
-                                  disabled={isCurrentPlan}
-                                  loading={btnLoader.id === plan?._id && btnLoader.toggle}
+                                  disabled={
+                                    isCurrentPlan
+                                  }
+                                  loading={
+                                    btnLoader.id === plan._id &&
+                                    btnLoader.toggle
+                                  }
                                 >
-                                  {isCurrentPlan ? "Current Plan" : "Select"}
+                                 {isCurrentPlan ? "Current Plan" : "Select"}
                                 </Button>
                               </div>
                             </Box>
@@ -413,6 +758,87 @@ const [hasInitialized, setHasInitialized] = useState(false);
                     })}
                   </InlineGrid>
 
+                  {/* <InlineGrid columns={{ xs: 1, sm: 2, md: 3, lg: 4 }} gap="400">
+                  {plans?.map((plan: any) => (
+                    <div key={plan._id}  className={`plan-card-wrapper ${
+                        currentPlan?.planId === plan._id ? "active-plan-border" : ""
+                      }`}>
+                      <div className="plan-card-content">
+                        <BlockStack gap="300">
+                          <Text variant="headingMd" as="h2" alignment="center">
+                            <span className="text-normal">{plan.name}</span>
+                          </Text>
+
+                          <span className="freeplan-custom-btn text-normal">
+                            <Text as="span" tone="subdued" variant="bodyMd" alignment="center">
+                              ${plan.price}
+                              <span> /month</span>
+                            </Text>
+                          </span>
+
+                          <Text as="p" variant="bodyMd" fontWeight="bold">
+                            {plan.note}
+                          </Text>
+                          <Text tone="subdued" as="p" variant="bodyMd">
+                            {plan.subNote}
+                          </Text>
+
+                          <Box>
+                            <ul className="mb-5 p-0 ps-3 pb-3">
+                              {plan.features.map((feature: any, index: any) => (
+                                <li key={index} className="custom-li">
+                                  <div className="freeplan-feature py-1 d-flex">
+                                    <img
+                                      src={truesign}
+                                      alt="tick icon"
+                                      className="me-2"
+                                      style={{ width: "16px", height: "16px", marginTop: "4px" }}
+                                    />
+                                    <Text as="p" variant="bodyMd">
+                                      {feature}
+                                    </Text>
+                                  </div>
+                                </li>
+                              ))}
+                            </ul>
+                          </Box>
+                        </BlockStack>
+
+                        <div className="select-freeplan-btn">
+                          <Button
+                            fullWidth
+                            onClick={() => {
+                              plan.price === 0 &&
+                                setSelectedPlan({ planId: plan._id, planPrice: null });
+                              handleSubmit(plan._id);
+                            }}
+                            disabled={
+                              currentPlan?.planId
+                                ? plan._id === currentPlan?.planId!
+                                : plan.price === 0
+                            }
+                            loading={btnLoader.id === plan._id && btnLoader.toggle}
+                          >
+                            Select
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </InlineGrid> */}
+                {/* <Box>
+                {!isProductPage && (
+                        <div className="text-center theme-btn mt-4">
+                          <Button
+                            variant="primary"
+                            onClick={() => handleSubmit(plans[0]?._id)}
+                            disabled={loader}
+                          >
+                            Continue Without Changes
+                          </Button>
+                        </div>
+                      )}
+                      </Box> */}
                 </Layout.Section>
               </Layout>
 

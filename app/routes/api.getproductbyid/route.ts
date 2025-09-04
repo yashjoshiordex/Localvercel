@@ -36,9 +36,8 @@ export const loader = async ({ request }: any) => {
           sku: dbProduct.sku,
           price: dbProduct.price,
           goalAmount: dbProduct.goalAmount,
-          minimumDonationAmount: dbProduct.minimumDonationAmount,
+          minimumDonation: dbProduct.minimumDonationAmount,
           presetValue: dbProduct.presetValue,
-          status:dbProduct.status,
           shop: dbProduct.shop,
         }
       }),

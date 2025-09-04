@@ -14,8 +14,7 @@ const productSchema = new mongoose.Schema(
         presetValue: { type: [Number], default: [] }, 
         shop: { type: String, required: true },
         isDeleted: { type: Boolean, default: false },
-        status: { type: String, default: "ACTIVE", enum: ["ACTIVE", "DRAFT", null] },
-        isVariant: { type: Boolean, default: false }
+        status: { type: String, default: "Active", enum: ["Active", "Archived"] },
     },
     { timestamps: true }
 );

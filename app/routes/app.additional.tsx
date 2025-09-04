@@ -27,7 +27,7 @@ export default function AdditionalPage() {
     })
       .then((res) => res.json())
       .then((data) => console.log(data.message))
-      .catch((err) => console.warn("Error fetching API:", err));
+      .catch((err) => console.error("Error fetching API:", err));
   }, []);
   return (
     <Page>

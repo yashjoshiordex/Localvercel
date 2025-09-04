@@ -12,7 +12,6 @@ interface DonationProduct {
   title: string;
   description: string;
   sku: string;
-  status: "ACTIVE" | "DRAFT";
   price: number;
   minimumDonationAmount: number;
   shop: string;
@@ -28,12 +27,11 @@ export interface IFormData {
   productId?: string;
   title: string;
   description: string;
-  minimumDonationAmount: number | null | string;
+  minimumDonationAmount: number | null;
   sku: number | null | string;
   presetvalue: any[];
   price: number | null;
   goalAmount: number | null;
-  isActive: boolean; 
 }
 
 // Add validation errors interface

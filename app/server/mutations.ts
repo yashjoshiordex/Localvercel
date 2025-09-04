@@ -392,27 +392,6 @@ query getVariantByID($id: ID!) {
 }
 `;
 
-export const SHOP_CURRENCY_QUERY = `
-        query GetShopCurrencyCode {
-          shop {
-            myshopifyDomain
-            currencyCode
-          }
-        }
-      `;
-
-export const DELETE_PRODUCT_MUTATION = `
-  mutation productDelete($input: ProductDeleteInput!) {
-    productDelete(input: $input) {
-      deletedProductId
-      userErrors {
-        field
-        message
-      }
-    }
-  }
-`;
-
 export const APP_USAGE_CHARGE_MUTATION = `
   mutation appUsageRecordCreate($subscriptionLineItemId: ID!, $price: MoneyInput!, $description: String!) {
     appUsageRecordCreate(
@@ -428,21 +407,6 @@ export const APP_USAGE_CHARGE_MUTATION = `
         }
         description
         createdAt
-      }
-      userErrors {
-        field
-        message
-      }
-    }
-  }
-`;
-
-export const DELETE_PRODUCT_MUTATION_FOR_DOWN = `
-  mutation productDelete($input: ProductDeleteInput!) {
-    productDelete(input: $input) {
-      deletedProductId
-      shop {
-        id
       }
       userErrors {
         field

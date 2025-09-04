@@ -6,29 +6,16 @@ import { CustomError } from "app/server/utils/custom-error";
 import { Order } from "app/server/models/Order";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-    const { session, admin } = await authenticate.admin(request);
+    const { session } = await authenticate.admin(request);
     const { shop } = session;
     console.log(shop);
     try {
 
         const { planDoc } = await getStoreWithPlan(shop);
 
-        // Get shop currency information
-        const shopQuery = `
-            query {
-                shop {
-                    currencyCode
-                     currencyFormats {
-                        moneyFormat
-                    }
-                }
-            }
-        `;
+        // Get all orders for the shop
+        // const allOrders = await Order.find({ shop }).sort({ createdAt: -1 });
 
-        const shopResponse = await admin.graphql(shopQuery);
-        const shopData = await shopResponse.json();
-        const { currencyCode, currencyFormats } = shopData.data.shop;
-        const { moneyFormat } = currencyFormats;
         // Get current year and month
         const now = new Date();
         // const currentYear = now.getFullYear();
@@ -176,7 +163,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
         const dashboardData = {
             plan: planDoc,
-            currency: moneyFormat?.split("{{amount}}")[0]?.trim(),
             // allOrdersCount: allOrders.length,
             // monthlyOrdersCount: monthlyOrders.reduce((sum, y) => sum + y.count, 0) || monthlyOrders.length,
             // yearlyOrdersCount: yearlyOrders.reduce((sum, y) => sum + y.count, 0),

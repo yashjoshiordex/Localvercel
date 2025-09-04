@@ -16,7 +16,6 @@ export const createProductInDb = async ({
   shop,
   goalAmount,
   minimumDonationAmount = null,
-  status
 }: CreateProductParams) => {
   try {
 
@@ -30,7 +29,6 @@ export const createProductInDb = async ({
       shop,
       goalAmount,
       minimumDonationAmount,
-      status
     });
 
     console.log("Product successfully created in DB:", product);
@@ -57,8 +55,7 @@ export const getProducts = async (
     // Build query object
     const query: any = {
       shop: shopName,
-      isVariant: false, 
-      isDeleted: false 
+      // isDeleted: false 
     };
 
     // Add status filter if provided
@@ -144,7 +141,6 @@ export const updateProductInDb = async ({
   goalAmount,
   minimumDonationAmount,
   presetValue,
-  status 
 }: UpdateProductParams) => {
   try {
     const mongoResult = await Product.findOneAndUpdate(
@@ -158,7 +154,6 @@ export const updateProductInDb = async ({
           minimumDonationAmount,
           goalAmount,
           presetValue: presetValue,
-          status
         },
       },
       { upsert: true, new: true }
@@ -171,22 +166,8 @@ export const updateProductInDb = async ({
 };
 
 export async function softDeleteProductByShopifyId(shopifyProductId: string) {
-  return Product.updateMany(
+  return Product.findOneAndUpdate(
     { shopifyProductId },
-    { isDeleted: true, status: null }
+    { isDeleted: true, status: "Archived" }
   );
-}
-
-export async function countActiveProductsByShop(shop: string): Promise<number> {
-  try {
-    const count = await Product.countDocuments({ 
-      shop, 
-      isDeleted: { $ne: true } 
-    });
-    
-    return count;
-  } catch (error) {
-    logger.error(`Error counting products for shop ${shop}:`, error);
-    throw error;
-  }
 }

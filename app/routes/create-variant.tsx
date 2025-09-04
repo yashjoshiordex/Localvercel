@@ -1,7 +1,7 @@
 import { ActionFunctionArgs } from '@remix-run/node';
 import { Product } from 'app/server/models/Product';
 import StoreConfiguration from 'app/server/models/storeConfiguration';
-import { GET_INVENTORY_ITEM_ID, PRODUCT_ALL_VARIANTS_QUERY, PRODUCT_VARIANT_QUERY, SHOP_CURRENCY_QUERY, VARIANT_DETAIL_QUERY } from 'app/server/mutations';
+import { GET_INVENTORY_ITEM_ID, PRODUCT_ALL_VARIANTS_QUERY, PRODUCT_VARIANT_QUERY, VARIANT_DETAIL_QUERY } from 'app/server/mutations';
 import { updateInventoryItem } from 'app/server/ShopifyServices/updateInventoryItem';
 import { authenticate } from 'app/shopify.server';
 
@@ -13,14 +13,14 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const shopDomain = session?.shop;
 
   if (!admin) {
-    console.warn("Shopify Admin client not available.");
+    console.error("Shopify Admin client not available.");
     return new Response(
       JSON.stringify({ error: "Shopify Admin client not available." }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 
-  const storeConfig:any = await StoreConfiguration.findOne({ shop: shopDomain }).lean();
+  const storeConfig = await StoreConfiguration.findOne({ shop: shopDomain }).lean();
   if (!storeConfig) {
     return new Response(
       JSON.stringify({ error: "Store configuration not found" }),
@@ -84,7 +84,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }
 
     if (!variant) {
-      console.warn('Variant creation failed: No variant returned.');
+      console.error('Variant creation failed: No variant returned.');
       return new Response(
         JSON.stringify({ error: 'Variant creation failed: No variant returned.' }),
         { status: 500, headers: { "Content-Type": "application/json" } }
@@ -115,29 +115,22 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         variables: { id: `gid://shopify/ProductVariant/${variantId}` }
       });
       const varianData = await variantResponse.json();
-        
-      const currencyResponse = await admin.graphql(SHOP_CURRENCY_QUERY);
-      const currencyData = await currencyResponse.json();
-      const shopCurrency = currencyData?.data?.shop?.currencyCode || 'USD';
-      
-      console.log("Shop currency:", shopCurrency);
       const variantProduct:any = varianData?.data?.productVariant;
       
         const newVariant = new Product({
         shopifyProductId: shopifyproductId,
-        title: `${variantProduct.product.title} of ${price} ${shopCurrency}`,
+        title: variantProduct.product.title,
         variantId: variantProduct.id,
         sku: variantProduct.sku,
-        description: `This is variant product of ${variantProduct?.price} ${shopCurrency}`,
+        description:  `This is variant product of ${variantProduct?.price} price`,
         price: parseFloat(variantProduct.price),
         minimumDonationAmount: variantProduct.minimumDonationAmount || 0,
         shop: shopDomain,
-        isDeleted: false,
-        isVariant: true,
+        isDeleted: false
       });
       await newVariant.save();
     } catch (error) {
-      console.warn("Error saving variant to database:", error);
+      console.error("Error saving variant to database:", error);
       return new Response(
         JSON.stringify({ error: 'Failed to save variant to database' }),
         { status: 500, headers: { "Content-Type": "application/json" } }

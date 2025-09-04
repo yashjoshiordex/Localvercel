@@ -1,99 +1,386 @@
+// import React, { useEffect, useState } from "react";
+// import {
+//   Text,
+//   Box,
+// } from "@shopify/polaris";
+// export default function Welcome() {
+
+//   useEffect(() => {
+//   const handleUninstall = async () => {
+//     try {
+//       const response = await fetch("/api/uninstall");
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! Status: ${response.status}`);
+//       }
+//       console.log("Uninstall API response:", await response.json());
+//     } catch (error) {
+//       console.error("Failed to call uninstall API:", error);
+//     }
+//   };
+//   handleUninstall();
+// }, []);
+
+//   return (
+//     <Box>
+//       <Text as="h1" variant="headingLg" alignment="center" fontWeight="bold">
+//         Welcome to DonateMe for Donations
+//       </Text>
+//       <Box paddingBlock="400">
+//         <Text variant="bodyMd" as="p">
+//           DonateMe for Donations is a full-featured product customization and upselling tool
+//           specifically designed for charities, nonprofits and businesses looking to add a
+//           custom price option to their store.
+//         </Text>
+//         <div className="my-2">
+//           <Text variant="bodyMd" as="p">
+//             Over the years, DonateMe has helped thousands of Shopify merchants raise millions
+//             of dollars for charities, nonprofits, and businesses.
+//           </Text>
+//         </div>
+//         <Text variant="bodyMd" as="p">
+//           This short on-boarding process will step you through the key points to get you set
+//           up and able to accept donations in your Shopify Store.
+//         </Text>
+//         <Text variant="bodyMd" as="p">
+//           I hope DonateMe can assist you with your fundraising goals. Please enjoy the app
+//           and if I can be of any assistance, please let me know. I’m here to help!
+//         </Text>
+//         <div className="mt-2">
+//           <Text variant="bodyMd" as="p" fontWeight="semibold">
+//             -demo (Founder of DonateMe)
+//           </Text>
+//         </div>
+//       </Box>
+//     </Box>
+//   )
+// }
+
+// import React, { useEffect, useState } from "react";
+// import {
+//   Text,
+//   Box,
+// } from "@shopify/polaris";
+// export default function Welcome() {
+
+//   useEffect(() => {
+//   const handleUninstall = async () => {
+//     try {
+//       const response = await fetch("/api/uninstall");
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! Status: ${response.status}`);
+//       }
+//       console.log("Uninstall API response:", await response.json());
+//     } catch (error) {
+//       console.error("Failed to call uninstall API:", error);
+//     }
+//   };
+//   handleUninstall();
+// }, []);
+
+//   return (
+//     <Box>
+//       <Text as="h1" variant="headingLg" alignment="center" fontWeight="bold">
+//         Welcome to DonateMe for Donations
+//       </Text>
+//       <Box paddingBlock="400">
+//         <Text variant="bodyMd" as="p">
+//           DonateMe for Donations is a full-featured product customization and upselling tool
+//           specifically designed for charities, nonprofits and businesses looking to add a
+//           custom price option to their store.
+//         </Text>
+//         <div className="my-2">
+//           <Text variant="bodyMd" as="p">
+//             Over the years, DonateMe has helped thousands of Shopify merchants raise millions
+//             of dollars for charities, nonprofits, and businesses.
+//           </Text>
+//         </div>
+//         <Text variant="bodyMd" as="p">
+//           This short on-boarding process will step you through the key points to get you set
+//           up and able to accept donations in your Shopify Store.
+//         </Text>
+//         <Text variant="bodyMd" as="p">
+//           I hope DonateMe can assist you with your fundraising goals. Please enjoy the app
+//           and if I can be of any assistance, please let me know. I’m here to help!
+//         </Text>
+//         <div className="mt-2">
+//           <Text variant="bodyMd" as="p" fontWeight="semibold">
+//             -demo (Founder of DonateMe)
+//           </Text>
+//         </div>
+//       </Box>
+//     </Box>
+//   )
+// }
+
+
+// import React, { useEffect, useState } from "react";
+// import {
+//   Text,
+//   Box,
+//   Page,
+//   Image,
+//   InlineStack,
+//   Button
+// } from "@shopify/polaris";
+// import DonateWelcomeImage from '../assets/images/Donate-Image.png';
+// import userlogo from '../assets/images/user-image.png';
+
+// export default function Welcome() {
+
+//   useEffect(() => {
+//   const handleUninstall = async () => {
+//     try {
+//       const response = await fetch("/api/uninstall");
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! Status: ${response.status}`);
+//       }
+//       console.log("Uninstall API response:", await response.json());
+//     } catch (error) {
+//       console.error("Failed to call uninstall API:", error);
+//     }
+//   };
+//   handleUninstall();
+// }, []);
+
+//   return (
+//     <Page fullWidth>
+//        {/* <InlineStack gap="400" blockAlign="center">
+//                       <Box position="relative">
+//                         <Image
+//                           source={DashboardLogo}
+//                           alt="Dashboard Logo"
+//                           width={200}
+//                         />{" "}
+//                       </Box>
+//                     </InlineStack> */}
+//     <Box>
+//       <Text as="h1" variant="headingLg" alignment="center" fontWeight="bold">
+//         Welcome to DonateMe for Donations
+//       </Text>
+//       {/* <Box
+//               border="dashed"
+//               padding="200"
+//               display="flex"
+//               flexDirection="column"
+//               alignItems="center"
+//               justifyContent="center"
+//               gap="200"
+//             >
+              
+//               <Image
+//                 source="https://cdn-icons-png.flaticon.com/512/1170/1170576.png"
+//                 alt="Donation Illustration"
+//                 width={180}
+//               />
+//             </Box> */}
+//              {/* <div style={{
+//             display: 'flex',
+//             justifyContent: 'center',
+//             alignItems: 'center',
+//             marginTop: '2rem',
+//             padding: '2rem',
+//           }}>
+           
+//              <Image
+//                 source="https://cdn-icons-png.flaticon.com/512/1170/1170576.png"
+//                 alt="Donation Illustration"
+//                 width={180}
+//               />
+//           </div> */}
+//           <InlineStack align="center" blockAlign="center">
+//                   <Image source={DonateWelcomeImage} alt="Donateme Logo" width={200} />
+//                 </InlineStack>
+//       <Box paddingBlock="400">
+//         <Text variant="bodyMd" as="p" alignment="center">
+//           DonateMe for Donations is a full-featured product customization and upselling tool
+//           specifically designed for charities, nonprofits and businesses looking to add a
+//           custom price option to their store.
+//         </Text>
+//         <div className="my-2">
+//           <Text variant="bodySm" as="p" alignment="center">
+//             Over the years, DonateMe has helped thousands of Shopify merchants raise millions
+//             of dollars for charities, nonprofits, and businesses.
+//           </Text>
+//         </div>
+//         <Text variant="bodySm" as="p" alignment="center">
+//           This short on-boarding process will step you through the key points to get you set
+//           up and able to accept donations in your Shopify Store.
+//         </Text>
+//         <Text variant="bodySm" as="p" alignment="center">
+//           I hope DonateMe can assist you with your fundraising goals. Please enjoy the app
+//           and if I can be of any assistance, please let me know. I’m here to help!
+//         </Text>
+//         <div className="mt-2">
+//           <Text variant="bodySm" as="p" fontWeight="semibold" alignment="center">
+//           <Image source={userlogo} alt="Donateme Logo" width={20} />  -demo (Founder of DonateMe)
+//           </Text>
+//         </div>
+//         {/* <InlineStack align="start" blockAlign="center">
+//           <div className="mt-md-0 mt-3 theme-btn">
+//              <Button disabled>Buy shipping label</Button>
+//              </div>    
+//         </InlineStack> */}
+//         {/* <InlineStack align="end" blockAlign="center">
+//           <div className="mt-md-0 mt-3 theme-btn">
+//              <Button>Next</Button> 
+//              </div>    
+//         </InlineStack> */}
+//       </Box>
+//     </Box>
+//     </Page>
+//   )
+// }
+
+// Product Creation Screen 
+// import React, { useEffect, useState } from "react";
+// import {
+//   Text,
+//   Box,
+//   Page,
+//   Image,
+//   InlineStack,
+//   Button
+// } from "@shopify/polaris";
+// import DonateWelcomeImage from '../assets/images/Donate-Welcome-Image.png';
+// import userlogo from '../assets/images/user-image.png';
+// import marklogo from '../assets/images/Mask group.png';
+
+// export default function Welcome() {
+
+//   return (
+//     <Page fullWidth>
+       
+//     <Box>
+     
+//       {/* <Box
+//               border="dashed"
+//               padding="200"
+//               display="flex"
+//               flexDirection="column"
+//               alignItems="center"
+//               justifyContent="center"
+//               gap="200"
+//             >
+              
+//               <Image
+//                 source="https://cdn-icons-png.flaticon.com/512/1170/1170576.png"
+//                 alt="Donation Illustration"
+//                 width={180}
+//               />
+//             </Box> */}
+//              {/* <div style={{
+//             display: 'flex',
+//             justifyContent: 'center',
+//             alignItems: 'center',
+//             marginTop: '2rem',
+//             padding: '2rem',
+//           }}>
+           
+//              <Image
+//                 source="https://cdn-icons-png.flaticon.com/512/1170/1170576.png"
+//                 alt="Donation Illustration"
+//                 width={180}
+//               />
+//           </div> */}
+                  
+//                   {/* <Image source={DonateWelcomeImage} alt="Donateme Logo" width={200} /> */}
+
+                  
+      
+//       <div
+//       style={{
+//         display: 'flex',
+//         justifyContent: 'center', 
+//         flexDirection: 'column', 
+//         alignItems: 'center',      
+//         height: '50vh',           
+//         width: '100%',             
+//       }}
+//     >
+//       <Text as="h2" variant="headingLg">Product Created Successfully!</Text>
+//       <Image source={marklogo} alt="Donateme Logo" width={80} />
+//       <Text as="h2" variant="headingMd">Click Next to continue</Text>
+//       </div>
+      
+    
+                
+     
+//     </Box>
+//     </Page>
+//   )
+// }
+
 // Thank You for Installing DonateMe!
 import {
   Text,
   Box,
   Page,
-  InlineStack,
-  BlockStack,
+  Image,
 } from "@shopify/polaris";
-
+// import marklogo from '../assets/images/Mask group.png';
+import gifticon from '../assets/images/Gift-Icon.png';
 
 export default function Welcome() {
+
   return (
     <Page fullWidth>
-      <Box paddingBlock="600" paddingInline="600">
-        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-          <BlockStack gap="600">
-            {/* Header Section */}
-            <BlockStack gap="400" align="center">
-              {/* <Image source={DonateWelcomeImage} alt="DonateMe Logo" width={100} /> */}
+       
+    <Box>
+     
+      {/* <Box
+              border="dashed"
+              padding="200"
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              justifyContent="center"
+              gap="200"
+            >
               
-              <BlockStack gap="300" align="center">
-                <Text as="h1" variant="headingXl" alignment="center">
-                  Welcome to DonateMe
-                </Text>
-                <Text as="p" variant="bodyLg" alignment="center" tone="subdued">
-                  Transform your store into a powerful fundraising platform
-                </Text>
-              </BlockStack>
-            </BlockStack>
+              <Image
+                source="https://cdn-icons-png.flaticon.com/512/1170/1170576.png"
+                alt="Donation Illustration"
+                width={180}
+              />
+            </Box> */}
+             {/* <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: '2rem',
+            padding: '2rem',
+          }}>
+           
+             <Image
+                source="https://cdn-icons-png.flaticon.com/512/1170/1170576.png"
+                alt="Donation Illustration"
+                width={180}
+              />
+          </div> */}
+                  
+                  {/* <Image source={DonateWelcomeImage} alt="Donateme Logo" width={200} /> */}
 
-            {/* Main Content */}
-            <BlockStack gap="500" align="center">
-              {/* Description */}
-              <Text variant="bodyMd" as="p" alignment="center">
-                DonateMe helps charities, nonprofits, and socially conscious businesses 
-                add flexible donation options to their Shopify stores.
-              </Text>
-
-              {/* Features Grid */}
-              <div style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '32px',
-                textAlign: 'center',
-                width: '100%',
-                margin: '20px 0'
-              }}>
-                <BlockStack gap="200" align="center">
-                  <div style={{ fontSize: '24px' }}>🎯</div>
-                  <Text as="span" variant="bodyMd" fontWeight="semibold">Custom Donations</Text>
-                  <Text as="span" variant="bodySm" tone="subdued">Flexible pricing options</Text>
-                </BlockStack>
-
-                <BlockStack gap="200" align="center">
-                  <div style={{ fontSize: '24px' }}>📊</div>
-                  <Text as="span" variant="bodyMd" fontWeight="semibold">Track Impact</Text>
-                  <Text as="span" variant="bodySm" tone="subdued">Monitor your success</Text>
-                </BlockStack>
-
-                <BlockStack gap="200" align="center">
-                  <div style={{ fontSize: '24px' }}>🚀</div>
-                  <Text as="span" variant="bodyMd" fontWeight="semibold">Easy Setup</Text>
-                  <Text as="span" variant="bodySm" tone="subdued">Get started in minutes</Text>
-                </BlockStack>
-              </div>
-
-              {/* Success Story */}
-              <Box 
-                background="bg-surface-secondary" 
-                padding="400" 
-                borderRadius="300"
-                width="100%"
-              >
-                <Text as="span" variant="bodyMd" alignment="center" fontWeight="medium">
-                  Join thousands of successful fundraisers who have raised millions 
-                  of dollars with DonateMe worldwide.
-                </Text>
-              </Box>
-
-              {/* Founder Message */}
-              <BlockStack gap="300" align="center">
-                <Text as="span" variant="bodyMd" alignment="center" tone="subdued">
-                  "I hope DonateMe helps you achieve your fundraising goals!"
-                </Text>
+                  
+      
+      <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center', 
+        flexDirection: 'column', 
+        alignItems: 'center',      
+        height: '50vh',           
+        width: '100%',             
+      }}
+    >
+      <Text as="h2" variant="headingLg">Thank You for Installing DonateMe!</Text>
+      <Image source={gifticon} alt="Donateme Logo" width={80} />
+      <Text as="p" variant="bodyMd" alignment="center">Click Finish to complete the onboarding process.<br />You can restart onboarding anytime by navigating to DonateMe &gt; Settings &gt; Restart Onboarding.</Text>
+      </div>
+      
+    
                 
-                <InlineStack align="center" gap="300">
-                  {/* <Image source={userlogo} alt="Founder" width={32} /> */}
-                  <Text as="span" variant="bodyMd" fontWeight="semibold">
-                    demo, Founder of DonateMe
-                  </Text>
-                </InlineStack>
-              </BlockStack>
-            </BlockStack>
-          </BlockStack>
-        </div>
-      </Box>
+     
+    </Box>
     </Page>
-  );
+  )
 }

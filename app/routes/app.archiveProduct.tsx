@@ -26,7 +26,7 @@ export default function ArchivePage() {
       const data: ArchiveResponse = await res.json();
       setResponse(data);
     } catch (error) {
-      console.warn("Error archiving products:", error);
+      console.error("Error archiving products:", error);
       setResponse({
         success: false,
         error: "Failed to archive products. Please try again.",

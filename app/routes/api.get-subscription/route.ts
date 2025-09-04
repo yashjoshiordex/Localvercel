@@ -4,12 +4,12 @@ import { getPlanById } from "app/server/services/plan.service";
 import { IPlan } from "app/server/models/plan";
 import { createSubscription } from "app/server/services/subscription.service";
 import { ISubscription, Subscription } from "app/server/models/subscriptions";
-import {logger} from "app/server/utils/logger";
+import {logger} from "app/server/utils/logger"; // <-- Add this import
 import { toObjectId } from "app/server/utils/objectIdconvert";
-import { handlePlanDowngrade } from "app/server/services/planDowngrade.service";
-import StoreConfiguration from "app/server/models/storeConfiguration";
 
-
+/**
+ * Converts a string or ObjectId to a Mongoose ObjectId.
+ */
 export async function loader({ request }: { request: Request }) {
   try {
     // Step 1: Authenticate admin and extract session
@@ -47,50 +47,12 @@ export async function loader({ request }: { request: Request }) {
           headers: { "Content-Type": "application/json" },
         });
       }
-      
-      // Check if plan is free or bronze, then call downgrade function
-      if (planConfig.name === "Free Plan" || planConfig.name === "Bronze Plan") {
-        logger.info(`Downgrading to ${planConfig.name} plan, applying restrictions`, { shop: session.shop });
-        try{
-          await handlePlanDowngrade(session.shop,request);
-        }catch (err) {
-          logger.error("Error during plan downgrade", { error: err });
-          return new Response(JSON.stringify({ error: "Failed to handle plan downgrade" }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          });
-        }
-      }
-      
     } catch (err) {
       logger.error("Error fetching plan", { error: err });
       return new Response(
         JSON.stringify({ error: "Failed to fetch plan details" }),
         { status: 500, headers: { "Content-Type": "application/json" } },
       );
-    }
-
-
-    const existingConfig = await StoreConfiguration.findOne({ shop: session.shop });
-
-    if (existingConfig) {
-      try {
-        await StoreConfiguration.updateOne(
-          { shop: session.shop },
-          {
-            tagValue: null,
-            autoFulfillOrders: false,
-            requireShipping: false,
-            applySalesTax: false,
-          }
-        )
-      } catch (error) {
-        logger.error("Error updating store configuration", { error });
-        return new Response(
-          JSON.stringify({ error: "Failed to update store configuration" }),
-          { status: 500, headers: { "Content-Type": "application/json" } },
-        );
-      }
     }
 
     // Step 5: Fetch store from DB

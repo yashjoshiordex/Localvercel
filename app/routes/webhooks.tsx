@@ -1,29 +1,26 @@
 import { ActionFunction } from "@shopify/remix-oxygen";
-import { authenticate } from "../shopify.server"; // path should be correct
+import  { authenticate } from "../shopify.server"; // path should be correct
 import crypto from "crypto";
 // import { SessionModel } from "app/server/models/mongoose-session-model";
 import { handleOrderFulfillment } from "app/server/services/fullfilment.service";
 import { logger } from "app/server/utils/logger";
-import { Order } from "app/server/models/Order";
-import StoreConfiguration from "app/server/models/storeConfiguration";
-import { env } from "env.server";
 
 enum WebhookTopic {
   ORDERS_CREATE = "ORDERS_CREATE",
   PRODUCTS_CREATE = "PRODUCTS_CREATE",
-  CUSTOMERS_DATA_REQUEST = "CUSTOMERS_DATA_REQUEST",
-  CUSTOMERS_REDACT = "CUSTOMERS_REDACT",
-  SHOP_REDACT = "SHOP_REDACT"
 }
 
-const SHOPIFY_API_SECRET = env.SHOPIFY_API_SECRET!;
+const SHOPIFY_API_SECRET = process.env.SHOPIFY_API_SECRET!;
 
 const verifyShopifyWebhook = (hmacHeader: string, rawBody: string) => {
+  console.log("SHOPIFY_API_SECRET", SHOPIFY_API_SECRET);
   const generatedHash = crypto
     .createHmac("sha256", SHOPIFY_API_SECRET)
     .update(rawBody, "utf8")
     .digest("base64");
-
+  // console.log({ rawBody, generatedHash, hmacHeader });
+  // console.log("Computed HMAC:", generatedHash, "Header HMAC:", hmacHeader);
+  console.log("Compare", generatedHash === hmacHeader);
   const signatureOk = crypto.timingSafeEqual(
     Buffer.from(generatedHash),
     Buffer.from(hmacHeader),
@@ -46,18 +43,27 @@ export const action: ActionFunction = async ({ request }) => {
 
     // Verify the HMAC signature
     verifyShopifyWebhook(hmacHeader as string, rawBody); // Verify the HMAC signature
-    const { shop, topic, admin } = await authenticate.webhook(
+    const { shop, topic, session, admin } = await authenticate.webhook(
       new Request(request.url, {
         method: request.method,
         headers: request.headers,
         body: rawBody,
       }),
     );
-    console.log("📩 Incoming webhook:", topic, "from", shop);
-
+    console.log("Webhook received:", topic, shop, session);
     const payload = JSON.parse(rawBody);
+    console.log("Parsed payload:", payload);
     // Handle different Shopify webhook topics
     switch (topic) {
+      // case WebhookTopic.ORDERS_CREATE:
+      //   console.log("Handling ORDERS_CREATE webhook");
+      //   return new Response(
+      //     JSON.stringify({
+      //       success: true,
+      //       message: "Order created webhook processed.",
+      //     }),
+      //     { status: 200 },
+      //   );
       case WebhookTopic.ORDERS_CREATE:
         console.log("Handling ORDERS_CREATE webhook");
         try {
@@ -88,6 +94,8 @@ export const action: ActionFunction = async ({ request }) => {
         }
 
       case WebhookTopic.PRODUCTS_CREATE:
+        console.log("Handling PRODUCTS_CREATE webhook");
+        console.log("Product payload:", payload);
         return new Response(
           JSON.stringify({
             success: true,
@@ -96,55 +104,6 @@ export const action: ActionFunction = async ({ request }) => {
           }),
           { status: 200 },
         );
-      case WebhookTopic.CUSTOMERS_DATA_REQUEST:
-        console.log("Handling GDPR CUSTOMERS_DATA_REQUEST");
-        // Shopify sends customer data request payload
-        // TODO: Look up customer in DB and return to Shopify if required
-        const shopDomain = request.headers.get("x-shopify-shop-domain");
-        console.log("shopDomain", shopDomain)
-        const customerId = payload.customer?.id;
-        const email = payload.customer?.email;
-        const orders = await Order.find({
-          $or: [
-            { "customer.id": customerId },
-            { "customer.email": email }
-          ]
-        });
-        console.log("GDPR Data request - orders found:", orders.length);
-        return new Response("Data request processed", { status: 200 });
-
-      case WebhookTopic.CUSTOMERS_REDACT:
-        console.log("Handling GDPR CUSTOMERS_REDACT");
-        try {
-          const customerId = payload.customer?.id;
-          const email = payload.customer?.email;
-          // Example: remove orders linked to this customer
-          await Order.deleteMany({
-            $or: [
-              { "customer.id": customerId },
-              { "customer.email": email }
-            ]
-          });
-          return new Response(
-            JSON.stringify({ success: true, message: "Customer data deleted" }),
-            { status: 200 }
-          );
-        } catch (err) {
-          console.warn("Error deleting customer data", err);
-          return new Response("Error", { status: 500 });
-        }
-
-      case WebhookTopic.SHOP_REDACT:
-        console.log("Handling GDPR SHOP_REDACT");
-        try {
-          const shopDomain = payload.shop_domain;
-          await Order.deleteMany({ shop: shopDomain });
-          await StoreConfiguration.deleteOne({ shop: shopDomain });
-          return new Response("Shop data deleted", { status: 200 });
-        } catch (err) {
-          console.warn("Error deleting shop data", err);
-          return new Response("Error", { status: 500 });
-        }
 
       default:
         console.log("Unhandled webhook topic:", topic);
@@ -157,7 +116,7 @@ export const action: ActionFunction = async ({ request }) => {
         );
     }
   } catch (error) {
-    console.warn("Error handling webhook:", error);
+    console.error("Error handling webhook:", error);
     return new Response(
       JSON.stringify({
         success: false,

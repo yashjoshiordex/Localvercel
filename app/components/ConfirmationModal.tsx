@@ -1,4 +1,4 @@
-import { Page, Modal, Text} from '@shopify/polaris';
+import { Page, Modal, Text } from '@shopify/polaris';
 
 interface Iprops {
   active:boolean,
@@ -6,6 +6,16 @@ interface Iprops {
   handleConfirmation:() => void,
 }
 const ConfirmationModal = ({active, setActive, handleConfirmation}:Iprops) => {
+  // const [active, setActive] = useState(false);
+
+  // const handleOpen = useCallback(() => setActive(true), []);
+  // const handleClose = useCallback(() => setActive(false), []);
+
+  // const handleConfirm = () => {
+  //   // Perform your confirmed action here (e.g., delete, submit, etc.)
+  //   console.log('Confirmed!');
+  //   handleModal();
+  // };
 
   return (
     <Page>

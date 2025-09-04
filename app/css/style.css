@@ -15,19 +15,8 @@ body {
   font-family: Arial, sans-serif ;
   color: var(--black);
 }
-/* Add this to your CSS file */
-.gray-current-plan button {
-  background-color: #8a959f !important;
-  border-color: #8a959f !important;
-  color: white !important;
-}
 
-.gray-current-plan button:disabled {
-  background-color: #6c757d !important;
-  border-color: #6c757d !important;
-  color: white !important;
-  opacity: 0.8 !important;
-}
+
 .progress-container{
     width: 170px;
     margin: 0 auto;
@@ -66,7 +55,6 @@ body {
   padding: 12px 14px;
   font-weight: 400 !important;
   border: none;
-  box-shadow: none !important;
 }
 
 
@@ -93,7 +81,6 @@ body {
   padding: 12px 15px;
   border: none;
   font-size: 30px;
-  box-shadow: none !important;
  }
 
  .theme-btn .Polaris-Text--bodySm {
@@ -131,7 +118,6 @@ body {
   font-size: 20px;
   width: fit-content;
   margin: auto;
-  box-shadow: none !important;
 }
 
 .select-freeplan-btn .Polaris-Button {
@@ -142,7 +128,7 @@ body {
   border: none;
   font-size: 20px !important;
   font-weight: 700;
-  box-shadow: none !important;
+  box-shadow: none;
 }
 
 .select-freeplan-btn .Polaris-Text--bodySm {

@@ -25,45 +25,26 @@ export default function MainApp({initialTab = 'dashboard'}: MainAppProps) {
     }
   }, [searchParams]);
 
-
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
 
-    const currentUrl = new URL(window.location.href);
-    
-    // Clean URL when navigating away from planconfirmation
-    if (activeTab === 'planconfirmation' && tab !== 'planconfirmation') {
-      // Clear all parameters and set only the tab
-      const baseUrl = currentUrl.origin + currentUrl.pathname;
-      const newUrl = `${baseUrl}?tab=${tab}`;
-      window.history.replaceState({}, '', newUrl);
-    } else {
-      // Normal tab change - just update the tab parameter
-      currentUrl.searchParams.set('tab', tab);
-      window.history.replaceState({}, '', currentUrl);
-    }
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set('tab', tab);
+    window.history.replaceState({}, '', newUrl);
   };
-
-  // const handleTabChange = (tab: string) => {
-  //   setActiveTab(tab);
-
-  //   const newUrl = new URL(window.location.href);
-  //   newUrl.searchParams.set('tab', tab);
-  //   window.history.replaceState({}, '', newUrl);
-  // };
 
   const renderActiveComponent = () => {
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard onTabChange={handleTabChange} />;
       case 'manage':
-        return <ManageProducts onTabChange={handleTabChange} />;
+        return <ManageProducts />;
       case 'plans':
         return <SelectPlan onTabChange={handleTabChange}/>;
       case 'settings':
         return <StoreSettings onTabChange={handleTabChange} />;
       case 'reports':
-        return <Report onTabChange={handleTabChange}   />;
+        return <Report />;
       case 'help':
         return <Help />;
       case 'planconfirmation':

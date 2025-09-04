@@ -1,3 +1,253 @@
+// import React, { useState, useCallback, useEffect } from "react";
+// import {
+//   Page,
+//   Card,
+//   Button,
+//   BlockStack,
+//   InlineStack,
+//   Text,
+//   Badge,
+//   DataTable,
+//   Pagination,
+// } from "@shopify/polaris";
+// import CreateProduct from "./CreateProduct";
+// import ConfirmationModalExample from "./ConfirmationModal";
+// import NoProductFound from "./NoProductFound";
+// import { fetchData } from "app/utils/helper";
+// import { model } from "mongoose";
+// import Loader from "./Loader";
+
+// interface IProps {
+//   data: DonationProduct[];
+//   fetchAllData: Function;
+// }
+
+// interface DonationProduct {
+//   _id: string;
+//   title: string;
+//   description: string;
+//   sku: string;
+//   price: number;
+//   minimumDonationAmount: number;
+//   shop: string;
+//   shopifyProductId: string;
+//   variantId: string;
+//   createdAt: string;
+//   updatedAt: string;
+//   isDeleted: boolean;
+//   __v: number;
+// }
+
+// export default function ManageProducts() {
+//   const [data, setData] = useState<any>();
+//   const [pagination, setPagination] = useState<any>();
+//   const [loader, setLoader] = useState<boolean>(false);
+//   const [active, setActive] = useState(false);
+//   const [productId, setProductId] = useState<string>();
+//   const [singleData, setSingleData] = useState<DonationProduct>();
+//   const [modal, setModal] = useState({
+//     isOpen: false,
+//     id: "",
+//   });
+
+//   // Fetch all products data
+//   // const fetchAllData = async () => {
+//   //   const page = pagination?.currentPage ?? 1;
+//   //   fetchData(
+//   //     `/api/get-products?page=${page}&pageSize=10`,
+//   //     setData,
+//   //     setLoader,
+//   //   );
+//   // };
+
+//   //   const fetchAllData = async () => {
+//   //     const page = pagination?.currentPage ?? 1;
+//   //   await fetchData(
+//   //     `/api/get-products?page=${page}&pageSize=10`,
+//   //     (res: any) => {
+//   //       setData(res);
+//   //       const paginationData = res?.getProductsData?.data?.pagination;
+//   //       if (paginationData) {
+//   //         setPagination(paginationData);
+//   //       }
+//   //     },
+//   //     setLoader
+//   //   );
+//   // };
+
+//  const fetchPage = async () => {
+//     const page = pagination?.currentPage ?? 1;
+//     await fetchData(
+//       `/api/get-products?page=${page}&pageSize=10`,
+//       (res: any) => {
+//         setData(res);
+//         const paginationData = res?.getProductsData?.data?.pagination;
+//         if (paginationData) {
+//           setPagination(paginationData);
+//         }
+//       },
+//       setLoader,
+//     );
+//   };
+
+//   const handlePrevious = () => {
+//     if (pagination?.prevPage !== null) {
+//       setPagination((prev: any) => ({
+//         ...prev,
+//         currentPage: prev.currentPage - 1,
+//       }));
+//     }
+//   };
+
+//   const handleNext = () => {
+//     if (pagination?.nextPage !== null) {
+//       setPagination((prev: any) => ({
+//         ...prev,
+//         currentPage: prev.currentPage + 1,
+//       }));
+//     }
+//   };
+
+
+//   const handleConfirmation = useCallback(async () => {
+//     //APi call to delete the product
+//     try {
+//       const res = await fetch(`/api/deleteProduct?id=${productId}`, {
+//         method: "DELETE",
+//       });
+
+//       if (res.status === 200) {
+//         setActive(false);
+//         fetchPage()
+//       } else {
+//         console.error("Failed to delete product ", productId);
+//       }
+//     } catch (error) {
+//       console.error("Error", error);
+//     }
+//   }, [productId]);
+
+//   useEffect(() => {
+//     fetchPage();
+//   }, []);
+
+//   useEffect(() => {
+//   if (pagination?.currentPage) {
+//     fetchPage();
+//   }
+// }, [pagination?.currentPage]);
+
+
+//   return (
+//     <Page>
+//       <div className="mb-3">
+//         <InlineStack align="space-between" blockAlign="center">
+//           <Text as="h1" variant="headingLg">
+//             Donation Products
+//           </Text>
+//           <InlineStack gap="200">
+//             {/* <Button>Manage POS Locations</Button> */}
+//             <Button
+//               variant="primary"
+//               size="medium"
+//               onClick={() => {
+                
+//                 setModal({ ...modal, isOpen: true });
+//               }}
+//             >
+//               Create
+//             </Button>
+//           </InlineStack>
+//         </InlineStack>
+//       </div>
+
+//       {data?.getProductsData?.data?.products?.length ? (
+//         <>
+//           {loader ? (
+//             <Loader />
+//           ) : (
+//           <Card padding="200">
+//             <DataTable
+//               columnContentTypes={["text", "text", "text", "text"]}
+//               headings={["Name", "Status", "Last Updated", "Actions"]}
+//               rows={data?.getProductsData?.data?.products?.map(
+//                 (item: DonationProduct) => [
+//                   item.title!,
+//                   item.isDeleted ? "Inactive" : "Active",
+//                   new Date(item.updatedAt).toLocaleString(),
+//                   <>
+//                     <Button
+//                       onClick={() => {
+//                         setProductId(item.shopifyProductId);
+//                         setActive(true);
+//                       }}
+//                     >
+//                       Delete
+//                     </Button>
+//                     <Button
+//                       size="slim"
+//                       onClick={() => {
+//                         // setProductId(item.shopifyProductId);
+//                         // fetchDataById(item.shopifyProductId);
+//                         setModal({
+//                           ...model,
+//                           id: item.shopifyProductId,
+//                           isOpen: true,
+//                         });
+//                       }}
+//                     >
+//                       Edit
+//                     </Button>
+//                   </>,
+//                 ],
+//               )}
+//               increasedTableDensity
+//             />
+//             {pagination?.totalPages > 1 && (
+//               <div
+//                 style={{
+//                   marginTop: "20px",
+//                   display: "flex",
+//                   justifyContent: "center",
+//                   alignItems: "center",
+//                   gap: "10px",
+//                 }}
+//               >
+//                 {/* Previous/Next buttons */}
+//                 <Pagination
+//                   hasPrevious={pagination.hasPrevPage}
+//                   hasNext={pagination.hasNextPage}
+//                   onPrevious={() => {
+//                     handlePrevious();
+//                   }}
+//                   onNext={() => {
+//                     handleNext();
+//                   }}
+//                 />
+//               </div>
+//             )}
+//           </Card>)}
+//         </>
+//       ) : (
+//         data?.getProductsData?.data?.products?.length == 0 && <NoProductFound />
+//       )}
+
+//       <CreateProduct
+//         open={modal.isOpen}
+//         id={modal.id}
+//         onClose={() => setModal({ ...modal, id:"",isOpen: false })}
+//         fetchPage={fetchPage}
+//       />
+
+//       <ConfirmationModalExample
+//         active={active}
+//         setActive={setActive}
+//         handleConfirmation={handleConfirmation}
+//       />
+//     </Page>
+//   );
+// }
+
 import React, { useState, useCallback, useEffect } from "react";
 import {
   Button,
@@ -15,13 +265,15 @@ import CreateProduct from "./CreateProduct";
 import ConfirmationModalExample from "./ConfirmationModal";
 import NoProductFound from "./NoProductFound";
 import { fetchData } from "app/utils/helper";
+import { model } from "mongoose";
 import Loader from "./Loader";
 import FilterModal from "./FilterModel";
 import { SearchIcon, FilterIcon } from "@shopify/polaris-icons";
-import _ from 'lodash'; // Add this import
-import NestedLoader from "./NestedLoader";
-import usePlan from "app/context/PlanContext";
-import { useNavigate } from "react-router-dom";
+
+// interface IProps {
+  //   data: DonationProduct[];
+  //   fetchAllData: Function;
+  // }
   
 interface DonationProduct {
   _id: string;
@@ -40,50 +292,63 @@ interface DonationProduct {
   status: string;
 }
 
-interface ManageProductsProps {
-  onTabChange?: (tab: string) => void;
-}
-
-export default function ManageProducts({ onTabChange }: ManageProductsProps) {
+export default function ManageProducts() {
   const [data, setData] = useState<any>();
   const [pagination, setPagination] = useState<any>();
   const [loader, setLoader] = useState<boolean>(false);
-  const [tableLoader, setTableLoader] = useState<boolean>(false); 
   const [active, setActive] = useState(false);
   const [productId, setProductId] = useState<string>();
+  // const [singleData, setSingleData] = useState<DonationProduct>();
+  //   const [currentPage, setCurrentPage] = useState(1); // ✅ define state
   const [modal, setModal] = useState({
     isOpen: false,
     id: "",
   });
   // Add these new state variables after existing useState declarations
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [searchInput, setSearchInput] = useState<string>(""); // Add this line
   const [filterStatus, setFilterStatus] = useState<string>("");
   const [showFilterModal, setShowFilterModal] = useState<boolean>(false);
   const [tempFilterStatus, setTempFilterStatus] = useState<string>("");
+  const [hasInitialized, setHasInitialized] = useState(false);
 
-const [isInitialLoad, setIsInitialLoad] = useState(true);
-const [paginationChanged, setPaginationChanged] = useState(false);
-const { plan } = usePlan();
-const navigate = useNavigate();
+  // Fetch all products data
+  // const fetchAllData = async () => {
+  //   const page = pagination?.currentPage ?? 1;
+  //   fetchData(
+  //     `/api/get-products?page=${page}&pageSize=10`,
+  //     setData,
+  //     setLoader,
+  //   );
+  // };
 
- const fetchPage = async (isSearchOperation = false) => {
+  //   const fetchAllData = async () => {
+  //     const page = pagination?.currentPage ?? 1;
+  //   await fetchData(
+  //     `/api/get-products?page=${page}&pageSize=10`,
+  //     (res: any) => {
+  //       setData(res);
+  //       const paginationData = res?.getProductsData?.data?.pagination;
+  //       if (paginationData) {
+  //         setPagination(paginationData);
+  //       }
+  //     },
+  //     setLoader
+  //   );
+  // };
+
+ const fetchPage = async () => {
   const page = pagination?.currentPage ?? 1;
   
   // Build query parameters
   let queryParams = `page=${page}&pageSize=10`;
   
-  if (searchQuery?.trim()) {
-    queryParams += `&search=${encodeURIComponent(searchQuery?.trim())}`;
+  if (searchQuery.trim()) {
+    queryParams += `&search=${encodeURIComponent(searchQuery.trim())}`;
   }
   
   if (filterStatus) {
     queryParams += `&status=${encodeURIComponent(filterStatus)}`;
   }
-
-  // Use tableLoader for search/filter operations, loader for initial load
-  const loaderSetter = isSearchOperation ? setTableLoader : setLoader;
-
     await fetchData(
       `/api/get-products?${queryParams}`,
       (res: any) => {
@@ -93,54 +358,40 @@ const navigate = useNavigate();
           setPagination(paginationData);
         }
       },
-      loaderSetter,
+      setLoader,
     );
   };
 
-const handlePrevious = () => {
-  if (pagination?.prevPage !== null) {
-    setPaginationChanged(true); // Mark as pagination change
-    setPagination((prev: any) => ({
-      ...prev,
-      currentPage: prev?.currentPage - 1,
-    }));
-  }
-};
-
-const handleNext = () => {
-  if (pagination?.nextPage !== null) {
-    setPaginationChanged(true); // Mark as pagination change
-    setPagination((prev: any) => ({
-      ...prev,
-      currentPage: prev?.currentPage + 1,
-    }));
-  }
-};
-
-
-  const debouncedSearch = useCallback(
-    _.debounce((value: string) => {
-      setSearchQuery(value);
-      // Reset to first page when searching - don't mark as pagination change
-      setPaginationChanged(false);
+  const handlePrevious = () => {
+    if (pagination?.prevPage !== null) {
       setPagination((prev: any) => ({
         ...prev,
-        currentPage: 1,
+        currentPage: prev.currentPage - 1,
       }));
-    }, 500),
-    []
-  );
+    }
+  };
+
+  const handleNext = () => {
+    if (pagination?.nextPage !== null) {
+      setPagination((prev: any) => ({
+        ...prev,
+        currentPage: prev.currentPage + 1,
+      }));
+    }
+  };
 
 const handleSearch = (value: string) => {
-
-  setSearchInput(value); // Update input immediately for UI
-  debouncedSearch(value);
+  setSearchQuery(value);
+  // Reset to first page when searching
+  setPagination((prev: any) => ({
+    ...prev,
+    currentPage: 1,
+  }));
 };
 
 const handleFilterApply = () => {
   setFilterStatus(tempFilterStatus);
   setShowFilterModal(false);
-  setPaginationChanged(false);
   // Reset to first page when filtering
   setPagination((prev: any) => ({
     ...prev,
@@ -152,7 +403,6 @@ const handleFilterClear = () => {
   setTempFilterStatus("");
   setFilterStatus("");
   setShowFilterModal(false);
-  setPaginationChanged(false);
   // Reset to first page when clearing filter
   setPagination((prev: any) => ({
     ...prev,
@@ -160,25 +410,6 @@ const handleFilterClear = () => {
   }));
 };
 
-const canCreateMoreProducts = () => {
-  // If plan is not Free or Bronze, user can create unlimited products
-  if (plan !== "Free Plan" && plan !== "Bronze Plan") {
-    return true;
-  }
-  
-  // For Free Plan and Bronze Plan, check if user already has products
-  return !data?.getProductsData?.data?.products?.length;
-};
-
-  const handleTabChange = () => {
-    if (onTabChange) {
-      // If onTabChange is provided (when used in MainApp), use tab switching
-      onTabChange('plans');
-    } else {
-      // Fallback to navigation (when used standalone)
-      navigate("/app/plans");
-    }
-  };
 
   const handleConfirmation = useCallback(async () => {
     //APi call to delete the product
@@ -197,14 +428,14 @@ const canCreateMoreProducts = () => {
       } else {
         const errorData = await res.json().catch(() => ({}));
         const errorMessage = errorData.message || "Failed to delete product";
-        console.warn("Failed to delete product ", productId);
+        console.error("Failed to delete product ", productId);
         toast.error(errorMessage, {
           duration: 4000,
           position: 'top-right',
         });
       }
     } catch (error) {
-      console.warn("Error", error);
+      console.error("Error", error);
       toast.error('An error occurred while deleting the product', {
         duration: 4000,
         position: 'top-right',
@@ -230,48 +461,26 @@ const canCreateMoreProducts = () => {
     }
   };
 
+  // useEffect(() => {
+  //   fetchPage();
+  // }, []);
 
-// Initial load
 useEffect(() => {
-  fetchPage(false);
-  setIsInitialLoad(false);
-}, []);
+  fetchPage();
+}, [pagination?.currentPage, searchQuery, filterStatus]);
 
-// Handle pagination changes only
 useEffect(() => {
-  if (isInitialLoad || !paginationChanged) return;
-  
-  const isSearchOrFilter = !!searchQuery || !!filterStatus;
-  fetchPage(isSearchOrFilter);
-  setPaginationChanged(false); // Reset flag
-}, [pagination?.currentPage, paginationChanged]);
+  if (hasInitialized) return;
 
-// Handle search and filter changes
-useEffect(() => {
-  if (isInitialLoad) return;
-  
-  fetchPage(true); // Always use tableLoader for search/filter
-}, [searchQuery, filterStatus]);
-
-// Update Clear All button handler
-const handleClearAll = () => {
-  setSearchInput("");
-  setSearchQuery("");
-  setFilterStatus("");
-  setPaginationChanged(false); // Don't mark as pagination change
-  setPagination((prev: any) => ({
-    ...prev,
-    currentPage: 1,
-  }));
-};
-
-  if (loader) {
-    return (
-      <div style={{ backgroundColor: "#ffffff", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <Loader />
-      </div>
-    );
+  const loadData = async () => {
+  if (pagination?.currentPage || (!pagination?.currentPage && searchQuery) || (!pagination?.currentPage && filterStatus)) {
+    fetchPage();
   }
+  setHasInitialized(true);
+  }
+  loadData();
+}, [pagination?.currentPage, searchQuery, filterStatus]);
+
 
   return (
       <div className="bg-white">
@@ -284,8 +493,8 @@ const handleClearAll = () => {
                 <Text as="h1" variant="headingXl">
                   Donation Products
                 </Text>
+                <InlineStack gap="200">
                   {/* <Button>Manage POS Locations</Button> */}
-                {/* <InlineStack gap="200">
                   <div className="theme-btn">
                   <Button                 
                     
@@ -296,21 +505,7 @@ const handleClearAll = () => {
                     Create
                   </Button>
                   </div>
-                </InlineStack> */}
-
-              <InlineStack gap="200">
-                {canCreateMoreProducts() && (
-                  <div className="theme-btn">
-                    <Button
-                      onClick={() => {
-                        setModal({ ...modal, isOpen: true });
-                      }}
-                    >
-                      Create
-                    </Button>
-                  </div>
-                )}
-              </InlineStack>
+                </InlineStack>
               </InlineStack>
 
             {/* Search and Filter Section */}
@@ -319,7 +514,7 @@ const handleClearAll = () => {
                 <div style={{ flex: 1, maxWidth: "400px" }}>
                   <TextField
                     label=""
-                    value={searchInput}
+                    value={searchQuery}
                     onChange={handleSearch}
                     placeholder="Search products..."
                     prefix={<Icon source={SearchIcon} />}
@@ -344,10 +539,17 @@ const handleClearAll = () => {
                   )}
                 </InlineStack>
 
-                {(searchInput || filterStatus) && (
+                {(searchQuery || filterStatus) && (
                   <Button
                     variant="tertiary"
-                    onClick={handleClearAll}
+                    onClick={() => {
+                      setSearchQuery("");
+                      setFilterStatus("");
+                      setPagination((prev: any) => ({
+                        ...prev,
+                        currentPage: 1,
+                      }));
+                    }}
                   >
                     Clear All
                   </Button>
@@ -358,145 +560,144 @@ const handleClearAll = () => {
 
             {data?.getProductsData?.data?.products?.length ? (
               <>
-              <div className="custom-data-table-wrapper">
-                <Box
-                  borderWidth="025"
-                  borderColor="border"
-                  borderRadius="200"
-                >
-                  {tableLoader ? (
+                {loader ? (
+                  
+                  <div style={{ backgroundColor: "#ffffff", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Loader />
+                  </div>
+                ) : (
+                  <>
+                    <div className="custom-data-table-wrapper">
+                      <Box
+                        borderWidth="025"
+                        borderColor="border"
+                        borderRadius="200"
+                      >
+                        <DataTable
+                          columnContentTypes={["text", "text", "text", "text"]}
+                          headings={[
+                            <Text key="name" as="span" alignment="center" variant="headingLg">
+                              Name
+                            </Text>,
+                            <Text key="status" as="span" alignment="center" variant="headingLg">
+                              Status
+                            </Text>,
+                            <Text key="updated" as="span" alignment="center" variant="headingLg">
+                              Last Updated
+                            </Text>,
+                            <Text key="actions" as="span" alignment="center" variant="headingLg">
+                              Actions
+                            </Text>,
+                          ]}
+                          rows={data?.getProductsData?.data?.products?.map(
+                            (item: DonationProduct, index: number) => [
+                              // Name Cell
 
-                    <div style={{ backgroundColor: "#ffffff", minHeight: "50vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <NestedLoader />
+                              <Box key={`title-${index}`}>
+                                <Text as="span" alignment="center" variant="bodyLg">
+                                  {item.title}
+                                </Text>
+                              </Box>,
+
+                              // Status Cell
+                              <Box key={`status-${index}`}>
+                                 <Badge tone={item.status == "Active" ? "success" : "critical"} >
+                                  {item.status == "Active" ? "Active" : "Inactive"}
+                                </Badge>
+                              </Box>,
+
+                              // Last Updated Cell
+                              <Box key={`updated-${index}`}>
+                                <Text as="span" alignment="center" variant="bodyLg">
+                                  {new Date(item.updatedAt).toLocaleString()}
+                                </Text>
+                              </Box>,
+
+                              // Actions Cell
+                              <Box key={`actions-${index}`}>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    gap: "0.5rem",
+                                  }}
+                                >
+                                  <div
+                                    onClick={() => {
+                                      if (item.status === "Active") {
+                                        setProductId(item.shopifyProductId);
+                                        setActive(true);
+                                      }
+                                    }}
+                                    style={{
+                                      cursor: item.status === "Active" ? "pointer" : "not-allowed",
+                                      opacity: item.status === "Active" ? 1 : 0.5,
+                                    }}
+                                  >
+                                    <Badge tone="critical">
+                                      Delete
+                                    </Badge>
+                                  </div>
+                                  <div
+                                    onClick={() => {
+                                      if (item.status === "Active") {
+                                        setModal({
+                                          ...model,
+                                          id: item.shopifyProductId,
+                                          isOpen: true,
+                                        });
+                                      }
+                                    }}
+                                    style={{
+                                      cursor: item.status === "Active" ? "pointer" : "not-allowed",
+                                      opacity: item.status === "Active" ? 1 : 0.5,
+                                    }}
+                                  >
+                                    <Badge>
+                                      Edit
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </Box>,
+                            ],
+                          )}
+                          increasedTableDensity
+                        />
+                      </Box>
                     </div>
-                  ) : (
-                    <div style={{ minHeight: "50vh" }}>
-                      <DataTable
-                        columnContentTypes={["text", "text", "text", "text"]}
-                        headings={[
-                          <Text key="name" as="span" alignment="center" variant="headingLg">
-                            Name
-                          </Text>,
-                          <Text key="status" as="span" alignment="center" variant="headingLg">
-                            Status
-                          </Text>,
-                          <Text key="updated" as="span" alignment="center" variant="headingLg">
-                            Last Updated
-                          </Text>,
-                          <Text key="actions" as="span" alignment="center" variant="headingLg">
-                            Actions
-                          </Text>,
-                        ]}
-                        rows={data?.getProductsData?.data?.products?.map(
-                          (item: DonationProduct, index: number) => [
-                            // Name Cell
 
-                            <Box key={`title-${index}`}>
-                              <Text as="span" alignment="center" variant="bodyLg">
-                                {item?.title}
-                              </Text>
-                            </Box>,
-
-                            // Status Cell
-                            <Box key={`status-${index}`}>
-                              <Badge tone={item?.status == "ACTIVE" ? "success" : "info"} >
-                                {item?.status == "ACTIVE" ? "Active" : "Draft"}
-                              </Badge>
-                            </Box>,
-
-                            // Last Updated Cell
-                            <Box key={`updated-${index}`}>
-                              <Text as="span" alignment="center" variant="bodyLg">
-                                {new Date(item?.updatedAt).toLocaleString()}
-                              </Text>
-                            </Box>,
-
-                            // Actions Cell
-                            <Box key={`actions-${index}`}>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  justifyContent: "center",
-                                  gap: "0.5rem",
-                                }}
-                              >
-                                <div
-                                  onClick={() => {
-                                    // if (item.status === "ACTIVE") {
-                                    setProductId(item?.shopifyProductId);
-                                    setActive(true);
-                                    // }
-                                  }}
-                                  style={{
-                                    cursor: "pointer"
-                                  }}
-                                >
-                                  <Badge tone="critical">
-                                    Delete
-                                  </Badge>
-                                </div>
-                                <div
-                                  onClick={() => {
-                                    // if (item.status === "ACTIVE") {
-                                    setModal({
-                                      ...modal,
-                                      id: item?.shopifyProductId,
-                                      isOpen: true,
-                                    });
-                                    // }
-                                  }}
-                                  style={{
-                                    cursor: "pointer"
-                                  }}
-                                >
-                                  <Badge>
-                                    Edit
-                                  </Badge>
-                                </div>
-                              </div>
-                            </Box>,
-                          ],
-                        )}
-                        increasedTableDensity
-                      />
-                    </div>)}
-                </Box>
-              </div>
-
-
-
-              {pagination?.totalPages > 1 && (
-                <div
-                  style={{
-                    marginTop: "20px",
-                    display: "flex",
-                    justifyContent: "end",
-                    alignItems: "center",
-                    gap: "10px",
-                  }}
-                >
-                  {/* Previous/Next buttons */}
-                  <Pagination
-                    hasPrevious={pagination?.hasPrevPage}
-                    hasNext={pagination?.hasNextPage}
-                    onPrevious={() => {
-                      handlePrevious();
-                    }}
-                    onNext={() => {
-                      handleNext();
-                    }}
-                    label={`${pagination?.totalCount} products, Page ${pagination?.currentPage} of ${pagination?.totalPages}`}
-                  />
-                </div>
-              )}
-            </>
-
-
-          ) : (
-            data?.getProductsData?.data?.products?.length == 0 && (
-              <NoProductFound />
-            )
-          )}
+                    {pagination?.totalPages > 1 && (
+                      <div
+                        style={{
+                          marginTop: "20px",
+                          display: "flex",
+                          justifyContent: "end",
+                          alignItems: "center",
+                          gap: "10px",
+                        }}
+                      >
+                        {/* Previous/Next buttons */}
+                        <Pagination
+                          hasPrevious={pagination.hasPrevPage}
+                          hasNext={pagination.hasNextPage}
+                          onPrevious={() => {
+                            handlePrevious();
+                          }}
+                          onNext={() => {
+                            handleNext();
+                          }}
+                           label={`${pagination.totalCount} products, Page ${pagination.currentPage} of ${pagination.totalPages}`}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+              </>
+            ) : (
+              data?.getProductsData?.data?.products?.length == 0 && (
+                <NoProductFound />
+              )
+            )}
 
             <CreateProduct
               open={modal.isOpen}
@@ -520,17 +721,6 @@ const handleClearAll = () => {
             onClear={handleFilterClear}
           />
 
-          {!canCreateMoreProducts() && (
-            <Box paddingBlock="400">
-              <Text as="span" tone="subdued">
-                Your current plan ({plan}) allows only one donation product.
-                <Button variant="plain" onClick={handleTabChange}>
-                  Upgrade your plan 
-                </Button>
-                &nbsp;to create more products.
-              </Text>
-            </Box>
-          )}
 
           </Box>
         </div>

@@ -7,24 +7,23 @@ import Donation from '../models/Donation';
 import { getStoreWithPlan } from '../controllers/store.controller';
 import { createAppUsageCharge } from '../utils/createAppUsageCharge';
 import { getSubscriptionLineItemId } from '../utils/subscriptionLineItem';
-import { sendOrderConfirmationEmail } from './email.service';
 
 function toShopifyGID(type: "Product" | "ProductVariant", id: number | string): string {
   return `gid://shopify/${type}/${id}`;
 }
 
-// async function isAutoFulfillEnabled(shop: string): Promise<boolean> {
-//   const config = await StoreConfiguration.findOne({ shop });
-//   if (!config) {
-//     logger.info('StoreConfiguration not found', { shop });
-//     return false;
-//   }
-//   return !!config.autoFulfillOrders;
-// }
+async function isAutoFulfillEnabled(shop: string): Promise<boolean> {
+  const config = await StoreConfiguration.findOne({ shop });
+  if (!config) {
+    logger.info('StoreConfiguration not found', { shop });
+    return false;
+  }
+  return !!config.autoFulfillOrders;
+}
 
-// function hasDonateMeProducts(orderData: any): boolean {
-//   return orderData.line_items?.some((item: any) => item.vendor === 'DonateMe');
-// }
+function hasDonateMeProducts(orderData: any): boolean {
+  return orderData.line_items?.some((item: any) => item.vendor === 'DonateMe');
+}
 
 async function checkAndCreateVariantIfMissing(
   shop: string,
@@ -71,7 +70,6 @@ async function checkAndCreateVariantIfMissing(
       minimumDonationAmount: productInDb.minimumDonationAmount || 0,
       shop,
       isDeleted: false,
-      isVariant: true,
     });
 
     await newVariant.save();
@@ -91,48 +89,34 @@ export async function handleOrderFulfillment(shop: string, orderData: any, admin
   try {
     logger.info('Starting order fulfillment process', { shop, orderId: orderData.id });
     console.log("Starting order fulfillment process", orderData);
-    // Get store config for vendor & autoFulfill setting
-    const storeConfig = await StoreConfiguration.findOne({ shop });
-    if (!storeConfig) {
-      logger.info('StoreConfiguration not found', { shop });
+    const autoFulfill = await isAutoFulfillEnabled(shop);
+    if (!autoFulfill) {
+      logger.info('Auto fulfill not enabled for store', { shop });
       return false;
     }
 
-    const vendorName = "donateme";
-    const autoFulfill = !!storeConfig.autoFulfillOrders;
-
-    // Filter line items for matching vendor
-    const vendorLineItems = orderData.line_items.filter(
-      (item: any) => item.vendor?.toLowerCase() === vendorName
-    );
-
-    if (!vendorLineItems.length) {
-      logger.info(`Order does not have ${vendorName} products`, { shop, orderId: orderData.id });
+    if (!hasDonateMeProducts(orderData)) {
+      logger.info('Order does not have DonateMe products', { shop, orderId: orderData.id });
       return false;
     }
 
-    let fulfillmentStatus = 'unfulfilled';
-
-    if (autoFulfill) {
-      // Get fulfillment orders from Shopify
-      const orderQuery = await admin.graphql(`
-        query {
-          order(id: "gid://shopify/Order/${orderData.id}") {
-            id
-            fulfillmentOrders(first: 10) {
-              edges {
-                node {
-                  id
-                  status
-                  lineItems(first: 50) {
-                    edges {
-                      node {
-                        id
-                        totalQuantity
-                        remainingQuantity
-                        lineItem {
-                          vendor
-                        }
+    const orderQuery = await admin.graphql(`
+      query {
+        order(id: "gid://shopify/Order/${orderData.id}") {
+          id
+          fulfillmentOrders(first: 10) {
+            edges {
+              node {
+                id
+                status
+                lineItems(first: 50) {
+                  edges {
+                    node {
+                      id
+                      totalQuantity
+                      remainingQuantity
+                      lineItem {
+                        vendor
                       }
                     }
                   }
@@ -141,99 +125,90 @@ export async function handleOrderFulfillment(shop: string, orderData: any, admin
             }
           }
         }
-      `);
-
-      const orderJson = await orderQuery.json();
-      const fulfillmentOrders = orderJson?.data?.order?.fulfillmentOrders?.edges;
-
-      if (!fulfillmentOrders?.length) {
-        logger.error('No fulfillment orders found', { shop, orderId: orderData.id });
-        return false;
       }
+    `);
 
-      const fulfillableOrder = fulfillmentOrders.find(
-        (edge: any) => edge.node.status === 'OPEN' && edge.node.lineItems.edges.length > 0
-      );
-
-      if (!fulfillableOrder) {
-        logger.error('No fulfillable orders found', { shop, orderId: orderData.id });
-        return false;
-      }
-
-      const fulfillmentOrderId = fulfillableOrder.node.id;
-
-      // Ensure variants exist in DB / Shopify
-      for (const item of vendorLineItems) {
-        const productGID: string = toShopifyGID("Product", item.product_id);
-        const productInDb = await Product.findOne({ shopifyProductId: productGID, shop, isDeleted: false });
-        if (!productInDb) {
-          logger.error('Product not found in DB for vendor order item', {
-            shop,
-            productId: productGID,
-            orderId: orderData.id,
-          });
-          continue;
-        }
-
-        const variantGID = toShopifyGID("ProductVariant", item.variant_id);
-        await checkAndCreateVariantIfMissing(shop, productInDb, variantGID, item, admin);
-      }
-
-      // Filter fulfillment order line items for vendor
-      const vendorFulfillmentItems = fulfillableOrder.node.lineItems.edges
-        .filter(
-          (edge: any) =>
-            edge.node.remainingQuantity > 0 &&
-            edge.node.lineItem.vendor?.toLowerCase() === vendorName
-        )
-        .map((edge: any) => ({
-          id: edge.node.id,
-          quantity: edge.node.remainingQuantity,
-        }));
-
-      if (!vendorFulfillmentItems.length) {
-        logger.error(`No fulfillable ${vendorName} line items`, { shop, orderId: orderData.id });
-        return false;
-      }
-
-      // Create fulfillment
-      const fulfillmentResponse = await admin.graphql(FULFILLMENT_CREATE_MUTATION, {
-        variables: {
-          fulfillment: {
-            lineItemsByFulfillmentOrder: [
-              {
-                fulfillmentOrderId,
-                fulfillmentOrderLineItems: vendorFulfillmentItems,
-              },
-            ],
-          },
-        },
-      });
-
-      const responseJson = await fulfillmentResponse.json();
-      const userErrors = responseJson?.data?.fulfillmentCreate?.userErrors;
-      const fulfillment = responseJson?.data?.fulfillmentCreate?.fulfillment;
-
-      if (userErrors?.length > 0) {
-        logger.error('Fulfillment creation failed', {
-          errors: userErrors,
-          shop,
-          orderId: orderData.id,
-        });
-        throw new Error(userErrors[0].message);
-      }
-
-      fulfillmentStatus = fulfillment?.status === 'SUCCESS' ? 'fulfilled' : 'unfulfilled';
-      logger.info(`${vendorName} items auto-fulfilled successfully`, {
-        shop,
-        orderId: orderData.id,
-        fulfillmentId: fulfillment?.id,
-      });
-    } else {
-      logger.info(`Auto fulfill not enabled for store. Saving as unfulfilled.`, { shop });
+    const orderJson = await orderQuery.json();
+    const fulfillmentOrders = orderJson?.data?.order?.fulfillmentOrders?.edges;
+    
+    if (!fulfillmentOrders?.length) {
+      logger.error('No fulfillment orders found', { shop, orderId: orderData.id });
+      return false;
     }
 
-    // Prepare customer full name
+    const fulfillableOrder = fulfillmentOrders.find((edge: any) =>
+      edge.node.status === 'OPEN' && edge.node.lineItems.edges.length > 0
+    );
+
+    if (!fulfillableOrder) {
+      logger.error('No fulfillable orders found', { shop, orderId: orderData.id });
+      return false;
+    }
+
+    const fulfillmentOrder = fulfillableOrder.node;
+    const fulfillmentOrderId = fulfillmentOrder.id;
+
+    const donateMeLineItems = orderData.line_items.filter((item: any) => item.vendor === 'DonateMe');
+
+    for (const item of donateMeLineItems) {
+      const productGID: string = toShopifyGID("Product", item.product_id);
+      const productInDb = await Product.findOne({ shopifyProductId: productGID, shop, isDeleted: false });
+      if (!productInDb) {
+        logger.error('Product not found in DB for DonateMe order item', {
+          shop,
+          productId: productGID,
+          orderId: orderData.id,
+        });
+        continue;
+      }
+
+      const variantGID = toShopifyGID("ProductVariant", item.variant_id);
+      await checkAndCreateVariantIfMissing(shop, productInDb, variantGID, item, admin);
+    }
+
+    const donateMeFulfillmentItems = fulfillmentOrder.lineItems.edges
+      .filter((edge: any) => edge.node.remainingQuantity > 0 && edge.node.lineItem.vendor === 'DonateMe')
+      .map((edge: any) => ({
+        id: edge.node.id,
+        quantity: edge.node.remainingQuantity,
+      }));
+
+    if (!donateMeFulfillmentItems.length) {
+      logger.error('No fulfillable DonateMe line items', { shop, orderId: orderData.id });
+      return false;
+    }
+    // const trackingNumber = `DM-${orderData.id}`; // You can generate a more complex number if needed
+    // const trackingCompany = "Canada Post tracking number";  // You can also store/retrieve courier name from DB
+    // const trackingUrl = `https://www.canadapost-postescanada.ca/track-reperage/en#/filterPackage?searchFor=${trackingNumber}`;
+
+    const fulfillmentResponse = await admin.graphql(FULFILLMENT_CREATE_MUTATION, {
+      variables: {
+        fulfillment: {
+          lineItemsByFulfillmentOrder: [
+            {
+              fulfillmentOrderId,
+              fulfillmentOrderLineItems: donateMeFulfillmentItems,
+            },
+          ],
+        },
+      },
+    });
+
+    const responseJson = await fulfillmentResponse.json();
+    const userErrors = responseJson?.data?.fulfillmentCreate?.userErrors;
+    const fulfillment = responseJson?.data?.fulfillmentCreate?.fulfillment;
+
+     const fulfillmentStatus = fulfillment?.status || 'unknown';
+    if (userErrors?.length > 0) {
+      logger.error('Fulfillment creation failed', {
+        errors: userErrors,
+        shop,
+        orderId: orderData.id,
+      });
+      throw new Error(userErrors[0].message);
+    }
+    
+    // Create a properly formatted fullName or null
     let fullName = null;
     if (orderData.customer) {
       const firstName = orderData.customer.first_name || '';
@@ -243,41 +218,83 @@ export async function handleOrderFulfillment(shop: string, orderData: any, admin
       }
     }
 
-    // Save order to DB
     const order = new Order({
       shop,
       orderId: orderData.id,
       orderNumber: orderData.name,
-      fulfillmentStatus,
-      lineItems: vendorLineItems.map((item: any) => ({
+      fulfillmentStatus: fulfillmentStatus === 'SUCCESS' ? 'fulfilled' : 'unfulfilled',
+      lineItems: donateMeLineItems.map((item: any) => ({
         id: item.id,
         productId: toShopifyGID("Product", item.product_id),
         variantId: toShopifyGID("ProductVariant", item.variant_id),
         quantity: item.quantity,
         price: item.price,
         vendor: item.vendor,
-        productName: item.title || null,
-        variantName: item.name || null
+        productName: item.name || null,
       })),
       clientDetails: {
         id: orderData.customer?.id ? String(orderData.customer.id) : null,
         fullName: fullName,
         email: orderData.customer?.email || null,
-      },
-      redirectUrl: orderData?.order_status_url || null,
-      CURRENCY_CODE: orderData.currency
+      }
     });
     await order.save();
-
-    // Send email for vendor products
-    await sendOrderConfirmationEmail(shop, orderData, orderData.customer);
-
     console.log("Order saved in DB", order);
-    const donationTotal = vendorLineItems.reduce((sum: number, item: any) => {
+    const donationTotal = donateMeLineItems.reduce((sum: number, item: any) => {
       const itemTotal = parseFloat(item.price) * item.quantity;
       return sum + itemTotal;
     }, 0);
 
+    // if (donationTotal > 0) {
+    //   const donationDoc = await Donation.findOne({ shopDomain: shop });
+    //   const { planDoc } = await getStoreWithPlan(shop);
+    //   console.log("plandoc", planDoc);
+
+    //   console.log("donationDoc", donationDoc);
+
+    //   if (donationDoc) {
+    //     // Update donation total
+    //     donationDoc.lastChargedDonationAmount = donationDoc?.totalDonation
+    //     donationDoc.totalDonation += donationTotal;
+    //     donationDoc.donations.push({
+    //       orderId: orderData.id.toString(),
+    //       amount: donationTotal,
+    //       donatedAt: new Date(),
+    //     });
+    //     const threshold = planDoc?.threshold;
+    //     const percentFee = planDoc?.transactionFee;
+
+    //     const totalDonation = donationDoc.totalDonation;
+    //     let overage = 0
+    //     if (totalDonation > threshold) {
+    //       const prevOver = Math.max(donationDoc.lastChargedDonationAmount - planDoc?.threshold, 0);
+    //       overage = donationDoc.totalDonation - planDoc?.threshold - prevOver;
+    //       const fee = (overage * percentFee) / 100;
+    //       const lineItemId = await getSubscriptionLineItemId(admin);
+    //       // ⛔️ Only charge if not already charged for this batch
+    //       try {
+    //         await createAppUsageCharge({
+    //           admin: admin,
+    //           amount: parseFloat(fee.toFixed(2)),
+    //           description: `Usage charge for $${totalDonation.toFixed(2)} donations`,
+    //           subscriptionLineItemId: lineItemId as string
+    //         });
+
+    //         await donationDoc.save();
+    //       } catch (billingError: any) {
+    //         logger.error('❌ Failed to create usage charge', {
+    //           shop,
+    //           error: billingError.message,
+    //         });
+    //         // Don't reset totalDonation if billing failed
+    //       }
+    //     } else {
+    //       await donationDoc.save(); // Just save updated donations, no billing
+    //     }
+    //   } else {
+    //     logger.error('❌ Donation document not found for store', { shop });
+    //   }
+    // }
     if (donationTotal > 0) {
       const donationDoc = await Donation.findOne({ shopDomain: shop });
 
@@ -394,11 +411,11 @@ export async function handleOrderFulfillment(shop: string, orderData: any, admin
       }
     }
 
-    // logger.info('DonateMe items auto-fulfilled successfully', {
-    //   shop,
-    //   orderId: orderData.id,
-    //   fulfillmentId: responseJson?.data?.fulfillmentCreate?.fulfillment?.id,
-    // });
+    logger.info('DonateMe items auto-fulfilled successfully', {
+      shop,
+      orderId: orderData.id,
+      fulfillmentId: responseJson?.data?.fulfillmentCreate?.fulfillment?.id,
+    });
 
     return true;
   } catch (error: any) {

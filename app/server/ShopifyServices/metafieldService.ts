@@ -8,30 +8,22 @@ export async function setProductMetafield(
   minimumDonationAmount: number // Default value if not provided
 ) {
   try {
-    // Convert all values to float format before stringifying
-    const floatValues = value.map((v) => {
-      const num = Number(v);
-      if (isNaN(num)) {
-        throw new Error(`Invalid numeric value: ${v}`);
-      }
-      // Keep as string with decimal places to ensure proper decimal format
-      return num % 1 === 0 ? `${num}.0` : num.toFixed(2);
-    });
-    const stringifiedValue = JSON.stringify(floatValues);
+    const stringifiedValue = JSON.stringify(value.map(Number));
     logger.info("🔧 Setting metafield for product", {
       productId,
       namespace: "donate",
       key: "preset_value",
-      type: "list.number_decimal",
+      type: "list.number_integer",
       value: stringifiedValue,
     });
-    console.log("🔧 Setting metafield for product", {
-      productId,
-      namespace: "donate",
-      key: "preset_value",
-      type: "list.number_decimal",
-      value: stringifiedValue,
-    });
+    console.log("🔧 Setting metafield for product",
+      {
+        productId,
+        namespace: "donate",
+        key: "preset_value",
+        type: "list.number_integer",
+        value: stringifiedValue,
+      });
 
     const response = await admin.graphql(SET_PRODUCT_METAFIELD_MUTATION, {
       variables: {
@@ -40,7 +32,7 @@ export async function setProductMetafield(
             ownerId: productId,
             namespace: "donate",
             key: "preset_value",
-            type: "list.number_decimal", // Changed to support decimals
+            type: "list.number_integer",
             value: stringifiedValue,
           },
         ],
@@ -76,7 +68,7 @@ export async function setProductMetafield(
                 ownerId: productId,
                 namespace: "minimum_donation",
                 key: "minimum_value",
-                type: "number_decimal", 
+                type: "number_integer", 
                 value: String(minimumDonationAmount),
               },
             ],

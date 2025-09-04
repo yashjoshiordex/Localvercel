@@ -12,7 +12,7 @@ export const action = async ({ request }: any) =>
   const body = await request.json();
 
 
-  const { productId, title, description, vendor, productType, sku, price, minimumDonationAmount, presetValue,goalAmount,status } = body;
+  const { productId, title, description, vendor, productType, sku, price, minimumDonationAmount, presetValue,goalAmount } = body;
 
   logger.info("Received product update request:", {
     productId, title, vendor, productType, sku, price, minimumDonationAmount
@@ -60,43 +60,6 @@ export const action = async ({ request }: any) =>
     });
   }
 
-  // Validate preset values against minimum donation amount
-  if (minimumDonationAmount && minimumDonationAmount > 0) {
-    const invalidPresetValues = presetValue?.filter(value => {
-      const numValue = Number(value);
-      return !isNaN(numValue) && numValue < minimumDonationAmount;
-    });
-
-    if (invalidPresetValues.length > 0) {
-      logger.error("Preset values below minimum donation amount found:", {
-        invalidValues: invalidPresetValues,
-        minimumDonationAmount
-      });
-      return new Response(JSON.stringify({ 
-        error: `Preset values cannot be less than minimum donation amount (${minimumDonationAmount}). Invalid values: ${invalidPresetValues.join(', ')}` 
-      }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-  }
-
-  // Validate that all preset values are valid numbers
-  const invalidNumbers = presetValue?.filter(value => {
-    const numValue = Number(value);
-    return isNaN(numValue) || numValue <= 0;
-  });
-
-  if (invalidNumbers.length > 0) {
-    logger.error("Invalid preset values found:", invalidNumbers);
-    return new Response(JSON.stringify({ 
-      error: `All preset values must be valid positive numbers. Invalid values: ${invalidNumbers.join(', ')}` 
-    }), {
-      status: 400,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
   try {
     // Update the product in Shopify
     logger.info("Sending update to Shopify GraphQL API...");
@@ -106,7 +69,6 @@ export const action = async ({ request }: any) =>
           id: productId,
           title,
           descriptionHtml: description,
-          status
         },
       },
     });
@@ -185,7 +147,7 @@ export const action = async ({ request }: any) =>
 
     // --- MongoDB Update ---
     try {
-      await updateProductInDb({ productId, title, description, sku, price, minimumDonationAmount, presetValue, goalAmount,status });
+      await updateProductInDb({ productId, title, description, sku, price, minimumDonationAmount, presetValue, goalAmount });
       logger.info("MongoDB product updated successfully:", productId);
     } catch (mongoError) {
       logger.error("MongoDB update error:", mongoError instanceof Error ? mongoError.message : mongoError);
