@@ -1,3 +1,4 @@
+import { redirect } from '@remix-run/node';
 import mongoose from 'mongoose';
 
 const orderSchema = new mongoose.Schema({
@@ -12,13 +13,16 @@ const orderSchema = new mongoose.Schema({
     quantity: Number,
     price: String,
     vendor: String,
-    productName:String
+    productName:String,
+    variantName: String,
   }],
   clientDetails: {
     id: {type: String, default: null},
     fullName: {type: String, default: null},
     email: {type: String, default: null},
   },
+  redirectUrl: { type: String, default: null },
+  CURRENCY_CODE: { type: String, default: null },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

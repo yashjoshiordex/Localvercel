@@ -8,13 +8,15 @@ import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
 import { authenticate } from "../shopify.server";
 import { Frame } from "@shopify/polaris";
 import { PlanProvider } from "app/context/PlanContext";
+import { env } from "env.server";
+import { CurrencyProvider } from "app/context/CurrencyContext";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request);
 
-  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
+  return { apiKey: env.SHOPIFY_API_KEY || "" };
 };
 
 export default function App() {
@@ -23,6 +25,7 @@ export default function App() {
   
   return (
     <PlanProvider>
+      <CurrencyProvider>
     <AppProvider isEmbeddedApp apiKey={apiKey}>
       <Frame>
       <NavMenu>
@@ -30,9 +33,9 @@ export default function App() {
           Home
         </Link>
         {/* <Link to="/app/additional">Additional page</Link> */}
-        <Link to="/app/manage">Manage Product</Link>
+        {/* <Link to="/app/manage">Manage Product</Link>
         <Link to="/app/plans">Change Plan</Link>
-        <Link to="/app/settings">Settings</Link>
+        <Link to="/app/settings">Settings</Link> */}
         {/* <Link to="/app/onboarding">Onboarding page</Link>
         <Link to="/app/sub">Test subscription page</Link>
         <Link to="/app/subscription-plans">Test plans page</Link> */}
@@ -40,6 +43,7 @@ export default function App() {
       <Outlet />
         </Frame>
     </AppProvider>
+    </CurrencyProvider>
     </PlanProvider>
   );
 }

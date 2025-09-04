@@ -18,41 +18,79 @@ export async function loader({ request }: { request: Request }): Promise<Respons
     // Parse query parameters
     const url = new URL(request.url);
     const page = parseInt(url.searchParams.get('page') || '1', 10);
-    const limit = parseInt(url.searchParams.get('limit') || '20', 10);
+    const limit = parseInt(url.searchParams.get('limit') || '10', 10);
+    const search = url.searchParams.get('search') || '';
     const skip = (page - 1) * limit;
 
-    // Get total count for pagination
-    const totalCount = await Order.countDocuments({ shop });
+    // Build query with search functionality
+    const matchQuery: any = { shop };
+    
+    // Add search functionality if search parameter exists
+    if (search.trim() !== '') {
+      const searchRegex = new RegExp(search, 'i');
+      matchQuery.$or = [
+        { orderId: searchRegex },
+        { orderNumber: searchRegex },
+        { 'lineItems.productName': searchRegex }
+      ];
+    }
 
-    // Fetch orders for the shop with pagination
-    const orders = await Order.find({ shop })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    // Get total count of line items across all matching orders
+    const lineItemCountResult = await Order.aggregate([
+      { $match: matchQuery },
+      { $project: { lineItemCount: { $size: "$lineItems" } } },
+      { $group: { _id: null, totalLineItems: { $sum: "$lineItemCount" } } }
+    ]);
+    
+    const totalLineItemCount = lineItemCountResult.length > 0 ? lineItemCountResult[0].totalLineItems : 0;
 
-    // Format orders with line items - no need for product lookup
-    const formattedOrders: OrderWithProducts[] = orders.map((order) => {
+    // Get paginated line items with their order information
+    const paginatedLineItems = await Order.aggregate([
+      { $match: matchQuery },
+      { $unwind: "$lineItems" },
+      { $sort: { createdAt: -1, "lineItems.id": 1 } },
+      { $skip: skip },
+      { $limit: limit },
+      {
+        $group: {
+          _id: "$_id",
+          orderId: { $first: "$orderId" },
+          orderNumber: { $first: "$orderNumber" },
+          createdAt: { $first: "$createdAt" },
+          lineItems: { $push: "$lineItems" },
+          redirectUrl: { $first: "$redirectUrl"}
+        }
+      },
+      { $sort: { createdAt: -1 } }
+    ]);
+
+    // Format the result
+    const formattedOrders: OrderWithProducts[] = paginatedLineItems.map((order) => {
       return {
         orderId: order.orderId,
         orderNumber: order.orderNumber,
         createdAt: order.createdAt,
-        // clientDetails: {
-        //   id: order.clientDetails?.id || null,
-        //   fullName: order.clientDetails?.fullName || null,
-        //   email: order.clientDetails?.email || null
-        // },
-        lineItems: order.lineItems
+        lineItems: order.lineItems,
+        redirectUrl: order.redirectUrl || null,
       };
     });
+
+    // Calculate current page line item count
+    const currentPageLineItemCount = formattedOrders.reduce(
+      (total, order) => total + order.lineItems.length, 
+      0
+    );
 
     const response: ApiResponse = {
       success: true,
       data: {
         orders: formattedOrders,
-        totalCount,
+        totalLineItemCount,
+        currentPageLineItemCount,
         page,
-        limit
+        limit,
+        totalPages: Math.ceil(totalLineItemCount / limit),
+        search: search || undefined
       }
     };
 

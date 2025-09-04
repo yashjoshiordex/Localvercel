@@ -34,9 +34,6 @@ export default function DonationFeatures() {
               Add the DonateMe donation widget to your online store to enable
               customer donations during shopping.
             </Text>
-            {/* <div>
-              <Button variant="plain">Click here</Button>
-            </div> */}
           </BlockStack>
         </Card>
 
@@ -44,7 +41,6 @@ export default function DonationFeatures() {
         <Card roundedAbove="sm" padding="400">
           <BlockStack gap="300">
             <InlineStack align="start" gap="200">
-              {/* <Icon source={StoreMajor} tone="base" /> */}
               <Link
                 url="https://seen-adasaurus-6ad.notion.site/DonateMe-and-Shopify-POS-2109865caa9d805cae02d14c2d1498d4"
                 target="_blank"
@@ -58,9 +54,6 @@ export default function DonationFeatures() {
               Allow customers to make a donation at the point of sale in your
               physical store.
             </Text>
-            {/* <div>
-              <Button variant="plain">Click here</Button>
-            </div> */}
           </BlockStack>
         </Card>
 
@@ -72,7 +65,6 @@ export default function DonationFeatures() {
                 url="https://seen-adasaurus-6ad.notion.site/Using-DonateMe-on-the-Checkout-Page-2109865caa9d80a680c9d2769c714fb0"
                 target="_blank"
               >
-                {/* <Icon source={CheckoutMajor} tone="base" /> */}
                 <Text as="h3" variant="headingSm">
                   Customization the Checkout Page
                 </Text>
@@ -82,9 +74,6 @@ export default function DonationFeatures() {
               Customize the donation experience on your checkout page for
               maximum conversion. Required Shopify Plus
             </Text>
-            {/* <div>
-              <Button variant="plain">Click here</Button>
-            </div> */}
           </BlockStack>
         </Card>
       </InlineGrid>

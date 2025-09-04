@@ -71,9 +71,12 @@ export interface ApiResponse {
   success: boolean;
   data?: {
     orders: OrderWithProducts[];
-    totalCount: number;
+    totalLineItemCount: number;
+    currentPageLineItemCount: number;
     page: number;
     limit: number;
+    totalPages: number;
+    search?: string; // Optional search term included in response
   };
   error?: string;
 }

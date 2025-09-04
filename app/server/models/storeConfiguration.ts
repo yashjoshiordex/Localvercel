@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { IStoreSettingsDocument } from '../types/store';
 
 const storeConfigurationSchema = new mongoose.Schema<IStoreSettingsDocument>({
@@ -12,5 +12,5 @@ const storeConfigurationSchema = new mongoose.Schema<IStoreSettingsDocument>({
   updatedAt: { type: Date, default: Date.now }
 });
 
-const StoreConfiguration = mongoose.model<IStoreSettingsDocument>('StoreSettings', storeConfigurationSchema);
+const StoreConfiguration =mongoose.models.EmailConfig as Model<IStoreSettingsDocument>|| mongoose.model<IStoreSettingsDocument>('StoreSettings', storeConfigurationSchema);
 export default StoreConfiguration;

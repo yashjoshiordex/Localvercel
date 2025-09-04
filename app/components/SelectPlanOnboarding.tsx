@@ -18,10 +18,7 @@ import { useAppBridge } from "@shopify/app-bridge-react";
 import {  useSearchParams, useLocation } from "@remix-run/react";
 import Loader from "./Loader";
 import toast, { Toaster } from 'react-hot-toast';
-// import { fetchData } from "app/utils/helper";
-// import "../css/changeplan.css";
 import truesign from "../assets/images/truesignIocn.svg";
-// import Header from "./Header";
 type IProps = {
   nextStep?: Function;
 };
@@ -54,6 +51,7 @@ export default function SelectPlan({ nextStep }: IProps) {
 
   // const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  // const { setPlan } = usePlan();
 
   const app: any = useAppBridge();
   const [plans, setPlans] = useState<any>();
@@ -92,12 +90,12 @@ export default function SelectPlan({ nextStep }: IProps) {
         // setcurrentPlan(data?.currentSubscription);
         setLoader(false);
       } else {
-        console.log("somthing went wrong");
+        console.warn("somthing went wrong");
         throw new Error('Invalid response structure');
       }
     } catch {
       setLoader(false);
-      console.error("somthing went wrong");
+      console.warn("somthing went wrong");
       toast.error('Failed to load plans. Please refresh the page.', {
         duration: 4000,
         position: 'top-right',
@@ -120,11 +118,11 @@ export default function SelectPlan({ nextStep }: IProps) {
         });
         fetchPlans();
       } else {
-        console.log("Failed to fetch subscription details.");
+        console.warn("Failed to fetch subscription details.");
         throw new Error(data.message || 'Failed to fetch subscription details');
       }
     } catch (err) {
-      console.error(`An unexpected error occurred: ${(err as Error).message}`);
+      console.warn(`An unexpected error occurred: ${(err as Error).message}`);
       toast.error('Failed to fetch subscription details. Please try again.', {
         duration: 4000,
         position: 'top-right',
@@ -138,10 +136,6 @@ export default function SelectPlan({ nextStep }: IProps) {
     try {
       setLoader(true);
       setBtnLoader({ id: planId, toggle: true });
-      // if (nextStep && typeof nextStep === 'function') {
-      //     nextStep();
-      // }
-      console.log("planId", planId);
       const url = `/api/billing-start/?plan=${planId}&isSetting=${isProductPage ? true : false}`
       const response = await fetch(url);
 
@@ -168,21 +162,11 @@ export default function SelectPlan({ nextStep }: IProps) {
         
       return;
 
-        // if (isProductPage) {
-        //   return navigate(`/app/planconfirmation/?plan=${planId}`);
-        //   // fetchSubscriptionDetails(); // Call fetchData only in product page
-        // } else {
-        //   return navigate(`/app/thankyou/?plan=${planId}`);
-        // }
       }
 
       // Navigate to confiramtion page if it isn't free plan
       if (confirmationUrl) {
 
-        toast.success('Redirecting to payment...', {
-          duration: 3000,
-          position: 'top-right',
-        });
 
         const redirect = Redirect.create(app);
 
@@ -190,7 +174,7 @@ export default function SelectPlan({ nextStep }: IProps) {
           try {
             redirect.dispatch(Redirect.Action.REMOTE, confirmationUrl);
           } catch (error) {
-            console.error(
+            console.warn(
               "App Bridge redirect failed. Falling back to native redirect.",
               error,
             );
@@ -203,7 +187,7 @@ export default function SelectPlan({ nextStep }: IProps) {
           safeRedirect(confirmationUrl);
         }
       } else {
-        console.error("Subscription failed: Missing confirmation URL.");
+        console.warn("Subscription failed: Missing confirmation URL.");
         toast.error('Failed to process subscription. Please try again.', {
           duration: 4000,
           position: 'top-right',
@@ -211,7 +195,7 @@ export default function SelectPlan({ nextStep }: IProps) {
         setBtnLoader({ id: planId, toggle: false });
       }
     } catch (error) {
-      console.error("Failed to initiate billing:", error);
+      console.warn("Failed to initiate billing:", error);
       toast.error('An error occurred while processing your request. Please try again.', {
         duration: 4000,
         position: 'top-right',
@@ -268,10 +252,8 @@ export default function SelectPlan({ nextStep }: IProps) {
                     gap="400"
                   >
                     {plans?.map((plan: any, id: any) => {
-                      // const isCurrentPlan = currentPlan?.planId === plan._id;
                       return (
-                        <Card key={plan._id} padding="400" 
-                        // background={isCurrentPlan ? "bg-surface-secondary" : undefined}
+                        <Card key={plan?._id} padding="400" 
 >
                         <BlockStack gap="200">
                           <InlineStack align="space-between" blockAlign="center">
@@ -280,27 +262,10 @@ export default function SelectPlan({ nextStep }: IProps) {
                               as="h2"
                               alignment="center"
                             >
-                              {plan.name}
+                              {plan?.name}
                             </Text>
-
                               <div>
-                                {/* {isCurrentPlan && (
-                                  <span 
-                                    style={{ 
-                                      backgroundColor: "#28a745", 
-                                      color: "white", 
-                                      padding: "4px 12px", 
-                                      borderRadius: "16px", 
-                                      fontSize: "12px",
-                                      fontWeight: "500",
-                                      whiteSpace: "nowrap"
-                                    }}
-                                  >
-                                    Current Plan
-                                  </span>
-                                )} */}
-
-                                {plan.popular  && (
+                                {plan?.popular  && (
                                   <span 
                                     style={{ 
                                       backgroundColor: "#007bff", 
@@ -319,22 +284,22 @@ export default function SelectPlan({ nextStep }: IProps) {
                            </InlineStack>
 
 
-                          <span className="freeplan-custom-btn">
+                          <span className="freeplan-custom-btn mt-3">
                             <Text
                               as="span"
                               variant="headingLg"
                               alignment="center"
                             >
-                              ${plan.price}
+                              ${plan?.price}
                               <span className=""> /month</span>
                             </Text>
                           </span>
 
                             <Text as="p" variant="bodyMd" fontWeight="bold">
-                              {plan.note}
+                              {plan?.note}
                             </Text>
                             <Text tone="subdued" as="p" variant="bodyMd">
-                              {plan.subNote}
+                              {plan?.subNote}
                             </Text>
                             <Box
                               as="ul"
@@ -344,7 +309,7 @@ export default function SelectPlan({ nextStep }: IProps) {
                               paddingBlockEnd="800"
                               
                             >
-                              {plan.features.map(
+                              {plan?.features.map(
                                 (feature: any, index: number) => (
                                   <Box as="li" key={index} paddingBlock="100" paddingInlineStart="600">
                                     <div className="freeplan-feature py-1 d-flex align-items-start">
@@ -374,19 +339,16 @@ export default function SelectPlan({ nextStep }: IProps) {
                                   fullWidth
                                   variant={ "primary"}
                                   onClick={() => {
-                                    if (plan.price === 0) {
+                                    if (plan?.price === 0) {
                                       setSelectedPlan({
-                                        planId: plan._id,
+                                        planId: plan?._id,
                                         planPrice: null,
                                       });
                                     }
-                                    handleSubmit(plan._id);
+                                    handleSubmit(plan?._id);
                                   }}
-                                  // disabled={
-                                  //   isCurrentPlan
-                                  // }
                                   loading={
-                                    btnLoader.id === plan._id &&
+                                    btnLoader.id === plan?._id &&
                                     btnLoader.toggle
                                   }
                                 >
@@ -403,22 +365,24 @@ export default function SelectPlan({ nextStep }: IProps) {
                 <Box>
                 {!isProductPage && (
                         <div className="text-center theme-btn mt-4">
-                          <Button
-                            variant="primary"
-                            // onClick={() => handleSubmit(plans[0]?._id)}
-                            
-        onClick={() => {
-          if (nextStep && typeof nextStep === 'function') {
-            nextStep(); // Go to step 5 directly
-          }
-        }}
-                            disabled={loader}
-                          >
-                            Continue Without Changes
-                          </Button>
-                        </div>
-                      )}
-                      </Box>
+                        <Button
+                          variant="primary"
+                          onClick={() => {
+                            if (nextStep && typeof nextStep === 'function') {
+                              setSelectedPlan({
+                                planId: plans[0]?._id,
+                                planPrice: null,
+                              });
+                              nextStep(plans[0]?._id); // Go to step 5 directly
+                            }
+                          }}
+                          disabled={loader}
+                        >
+                          Continue Without Changes
+                        </Button>
+                      </div>
+                    )}
+                  </Box>
                 </Layout.Section>
               </Layout>
 

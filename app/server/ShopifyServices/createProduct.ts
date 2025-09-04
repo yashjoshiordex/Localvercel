@@ -2,15 +2,17 @@ import { CREATE_PRODUCT_MUTATION } from "app/server/mutations";
 import { publishProductToOnlineStore } from "./publishProduct";
 import { setProductMetafield } from "./metafieldService";
 import { checkPlanPermission } from "app/server/utils/permissionCheak";
+import { env } from "env.server";
 
 export async function createShopifyProduct(
     admin: any, 
     title: string, 
     description: string, 
+    status: string,
     storeConfig?: any,
     shop?: string
 ) {
-    let productTags = ["DonateMe"];
+    let productTags = ["Donation"];
     
     if (storeConfig?.tagValue && shop) {
         // Check if the shop has the required plan for using tagValue
@@ -29,10 +31,11 @@ export async function createShopifyProduct(
                 vendor: "DonateMe",
                 descriptionHtml: description,
                 tags: productTags,
+                status
             },
             media: [
                 {
-                    originalSource: process.env.STATIC_IMAGE_URL,
+                    originalSource: env.STATIC_IMAGE_URL,
                     mediaContentType: "IMAGE",
                     alt: `Image for ${title}`,
                 },

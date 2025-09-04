@@ -21,7 +21,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
         shop,
         cc: [],
         template: "",
-        templateType: "default"
+        templateType: "default",
+        subject: "Donation Receipt" 
       }
     }));
   } catch (error) {
@@ -34,6 +35,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 interface EmailConfigFormData {
   cc?: string[];
   template?: string;
+  subject?: string; 
 }
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -79,11 +81,16 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
     const templateType: "custom" | "default" = template !== null ? "custom" : "default";
 
+    const subject: string = formData.subject && typeof formData.subject === 'string' 
+      ? formData.subject.trim()
+      : 'Donation Receipt';
+
     const updateData = {
       shop,
       cc: ccEmails,
       template,
       templateType,
+      subject, 
       updatedAt: new Date()
     };
 
@@ -106,80 +113,3 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     }), { status: 500 });
   }
 };
-
-
-
-// attempt -4
-// import { json, type LoaderFunctionArgs, type ActionFunctionArgs } from "@remix-run/node";
-// import { EmailConfig } from "app/server/models/EmailConfig";
-// import { withPlanRestriction } from "app/server/utils/withPlanRestriction";
-
-// // ✅ LOADER
-// export const loader = withPlanRestriction(
-//   { requiredPlanName: ["Gold Plan", "Bronze Plan"] },
-//   async (_admin, session, _plan, request) => {
-//     try {
-//       const shop = session.shop;
-
-//       const config = await EmailConfig.findOne({ shop });
-
-//       return json({
-//         success: true,
-//         config: config || {
-//           shop,
-//           cc: [],
-//           template: "",
-//           templateType: "default",
-//         },
-//       });
-//     } catch (error) {
-//       console.error("Email config loader error:", error);
-//       return json({ success: false, error: "Failed to load configuration" }, { status: 500 });
-//     }
-//   }
-// );
-
-// // ✅ ACTION
-// export const action = withPlanRestriction(
-//   { requiredPlanName: ["Gold Plan", "Bronze Plan"] },
-//   async (_admin, session, _plan, request) => {
-//     try {
-//       const shop = session.shop;
-//       const formData = await request.json();
-
-//       const template =
-//         formData.template && formData.template.trim() !== ""
-//           ? formData.template.trim()
-//           : null;
-
-//       const updateData = {
-//         shop,
-//         cc: Array.isArray(formData.cc) ? formData.cc : [],
-//         template,
-//         templateType: template ? "custom" : "default",
-//         updatedAt: new Date(),
-//       };
-
-//       const config = await EmailConfig.findOneAndUpdate(
-//         { shop },
-//         updateData,
-//         { upsert: true, new: true, runValidators: true }
-//       );
-
-//       return json({
-//         success: true,
-//         config,
-//         message: "Email configuration saved successfully",
-//       });
-//     } catch (error) {
-//       console.error("Email config action error:", error);
-//       return json(
-//         {
-//           success: false,
-//           error: error instanceof Error ? error.message : "Failed to save configuration",
-//         },
-//         { status: 500 }
-//       );
-//     }
-//   }
-// );
