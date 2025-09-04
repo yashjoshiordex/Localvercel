@@ -3,6 +3,8 @@ import { authenticate } from "app/shopify.server";
 import { logger } from "app/server/utils/logger";
 import { CANCEL_SUBSCRIPTION_MUTATION } from "app/server/mutations";
 import { Subscription } from "app/server/models/subscriptions";
+import Donation from "app/server/models/Donation";
+import { env } from "env.server";
 
 export const loader = async ({ request }: any) => {
   try {
@@ -116,7 +118,7 @@ export const loader = async ({ request }: any) => {
 //     const returnPath = isSetting ? "app?tab=planconfirmation" : "app";
 // const returnUrl = `https://admin.shopify.com/store/${storeName}/apps/${process.env.SHOPIFY_APP_NAME}/${returnPath}?plan=${selectedPlanId}`;
 
-const returnUrl = new URL(`https://admin.shopify.com/store/${storeName}/apps/${process.env.SHOPIFY_APP_NAME}/app`);
+const returnUrl = new URL(`https://admin.shopify.com/store/${storeName}/apps/${env.SHOPIFY_APP_NAME}/app`);
 
 if (isSetting) {
   returnUrl.searchParams.set("tab", "planconfirmation");
@@ -190,6 +192,24 @@ returnUrl.searchParams.set("plan", selectedPlanId);
         status: 500,
         headers: { "Content-Type": "application/json" },
       });
+    }
+    // ✅ Reset donation fields after successful subscription creation
+    try {
+      await Donation.findOneAndUpdate(
+        { shopDomain: session.shop },
+        {
+          $set: {
+            totalDonation: 0,
+            lastChargedDonationAmount: 0,
+            donations: [],
+            updatedAt: new Date(),
+          },
+        },
+        { new: true }
+      );
+      logger.info(`Donations reset for shop: ${session.shop}`);
+    } catch (resetError) {
+      logger.error("Failed to reset donations after subscription creation", { resetError });
     }
 
     logger.info("Subscription created successfully", { confirmationUrl });

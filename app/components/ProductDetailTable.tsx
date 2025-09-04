@@ -30,13 +30,14 @@ interface DonationProduct {
   createdAt: string;
   updatedAt: string;
   isDeleted: boolean;
+  status: "ACTIVE" | "DRAFT";
   __v: number;
 }
 
 export default function ProductDetailTable({ data, fetchAllData }: IProps) {
   const [active, setActive] = useState(false);
   const [productId, setProductId] = useState<string>();
-  const [singleData, setSingleData] = useState<DonationProduct>();
+  const [singleData, setSingleData] = useState<DonationProduct >();
   const [modal, setModal] = useState({
     isOpen: false,
   });
@@ -49,10 +50,10 @@ export default function ProductDetailTable({ data, fetchAllData }: IProps) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       const data = await res.json(); // <- await the JSON response
-      console.log("data BY ID", data.data);
-      setSingleData(data.data);
+      // console.log("data BY ID", data.data);
+      setSingleData(data?.data);
     } catch (error) {
-      console.error("Error while fetching products:", error);
+      console.warn("Error while fetching products:", error);
     }
   };
 
@@ -61,31 +62,17 @@ export default function ProductDetailTable({ data, fetchAllData }: IProps) {
     try {
       const res = await axios.delete(`/api/deleteProduct?id=${productId}`);
       if (res.status === 200) {
-        console.log("Product deleted successfully");
+        // console.log("Product deleted successfully");
         fetchAllData();
         setActive(false);
       } else {
         console.log("Failed to delete product");
       }
     } catch (error) {
-      console.error("Error", error);
+      console.warn("Error", error);
     }
   }, [productId]);
 
-  // const itemsPerPage = 3;
-  // const [currentPage, setCurrentPage] = useState(1);
-
-  // const startIndex = (currentPage - 1) * itemsPerPage;
-  // const endIndex = startIndex + itemsPerPage;
-  // const currentRows = rows.slice(startIndex, endIndex);
-
-  // const handlePrevious = useCallback(() => {
-  //   setCurrentPage((prev) => Math.max(1, prev - 1));
-  // }, []);
-
-  // const handleNext = useCallback(() => {
-  //   setCurrentPage((prev) => Math.min(Math.ceil(rows.length / itemsPerPage), prev + 1));
-  // }, [rows.length]);
 
   return (
     <>
@@ -118,7 +105,7 @@ export default function ProductDetailTable({ data, fetchAllData }: IProps) {
               <>
                 <Button
                   onClick={() => {
-                    setProductId(item.shopifyProductId);
+                    setProductId(item?.shopifyProductId);
                     setActive(true);
                   }}
                 >
@@ -127,7 +114,7 @@ export default function ProductDetailTable({ data, fetchAllData }: IProps) {
                 <Button
                   size="slim"
                   onClick={() => {
-                    fetchData(item.shopifyProductId);
+                    fetchData(item?.shopifyProductId);
                     setModal({ isOpen: true });
                   }}
                 >

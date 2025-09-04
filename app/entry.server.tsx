@@ -17,7 +17,7 @@ export default async function handleRequest(
   remixContext: EntryContext
 ) {
   addDocumentResponseHeaders(request, responseHeaders);
-  const userAgent = request.headers.get("user-agent");
+  const userAgent = request?.headers.get("user-agent");
   const callbackName = isbot(userAgent ?? '')
     ? "onAllReady"
     : "onShellReady";
@@ -26,7 +26,7 @@ export default async function handleRequest(
     const { pipe, abort } = renderToPipeableStream(
       <RemixServer
         context={remixContext}
-        url={request.url}
+        url={request?.url}
       />,
       {
         [callbackName]: () => {
@@ -47,7 +47,7 @@ export default async function handleRequest(
         },
         onError(error) {
           responseStatusCode = 500;
-          console.error(error);
+          console.warn(error);
         },
       }
     );

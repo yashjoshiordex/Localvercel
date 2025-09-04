@@ -8,11 +8,12 @@ import { withAuth } from "app/server/utils/withAuth";
 import { Session } from "@shopify/shopify-app-remix/server";
 import { AdminApiContextWithoutRest } from "node_modules/@shopify/shopify-app-remix/dist/ts/server/clients";
 import { logger } from "app/server/utils/logger";
-import { createProductInDb } from "app/server/controllers/product.Controller";
+import { countActiveProductsByShop, createProductInDb } from "app/server/controllers/product.Controller";
 import { createMetafieldDefinition } from "app/server/ShopifyServices/createMetafieldDefinition";
 import StoreConfiguration from "app/server/models/storeConfiguration";
-import { GET_INVENTORY_ITEM_ID } from "app/server/mutations";
+import { GET_INVENTORY_ITEM_ID, SET_PRODUCT_METAFIELD_MUTATION } from "app/server/mutations";
 import { updateInventoryItem } from "app/server/ShopifyServices/updateInventoryItem";
+import { checkPlanPermission } from "app/server/utils/permissionCheak";
 
 // ────────────────────────────────────────────────────────────────────────────────
 // Types
@@ -33,7 +34,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       /* 2️⃣  Parse & validate body ------------------------------------------------ */
       const body = await request.json();
       const parsed = validateProductInput(body);
-      console.log("Parsed product input:", body.goalAmount); // should be present
+      console.log("Parsed product input:", body); // should be present
 
       if (!parsed.success) {
         logger.error("Product input validation failed", { error: parsed.error });
@@ -43,8 +44,39 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         });
       }
 
-      const { title, description, sku, goalAmount } = parsed.data;
+      const { title, description, sku, goalAmount, status, minimumDonationAmount } = parsed.data;
       const shopDomain: string = session.shop;
+
+      try {
+        // Check if the shop has a free plan or bronze plan 
+        const permissionResult:any = await checkPlanPermission(shopDomain, ["Gold Plan", "Silver Plan"]);
+        
+        // If not on Gold/Silver plan, check if they already have a product
+        if (!permissionResult.hasAccess) {
+          // Import the countActiveProductsByShop function at the top of the file
+          const productCount = await countActiveProductsByShop(shopDomain);
+          
+          if (productCount >= 1) {
+            logger.warn("Free or Bronze plan user attempted to create more than one product", { 
+              shop: shopDomain,
+              productCount 
+            });
+            
+            return new Response(
+              JSON.stringify({ 
+                error: "Your current plan allows only one active product. Upgrade to Silver or Gold plan for unlimited products." 
+              }),
+              { status: 403, headers: { "Content-Type": "application/json" } }
+            );
+          }
+          
+          logger.info("Free plan user creating their first product", { shop: shopDomain });
+        } else {
+          logger.info(`${permissionResult.plan.name} user creating a product`, { shop: shopDomain });
+        }
+      } catch (error) {
+        logger.error("Error checking plan permissions", { error, shop: shopDomain });
+      }
 
       const storeConfig = await StoreConfiguration.findOne({ shop: shopDomain }).lean();
       if (!storeConfig) {
@@ -60,7 +92,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
       /* 3️⃣  Create product in Shopify ------------------------------------------- */
       const { product, variantId, errors: createErrors }: CreateProductResult =
-        await createShopifyProduct(admin, title, description, storeConfig, shopDomain);
+        await createShopifyProduct(admin, title, description, status, storeConfig, shopDomain);
 
       if (createErrors?.length > 0) {
         logger.error(`Shopify product creation errors ${JSON.stringify(createErrors)}`);
@@ -98,7 +130,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         admin,
         product.id, 
         variantId,
-        body.price ?? 10,
+        5,
         sku,
         body.minDonation,
         applySalesTax
@@ -130,7 +162,30 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         });
       }
 
+      const minDonationResponse = await admin.graphql(SET_PRODUCT_METAFIELD_MUTATION, {
+        variables: {
+          metafields: [
+            {
+              ownerId: product.id,
+              namespace: "minimum_donation",
+              key: "minimum_value",
+              type: "number_integer",
+              value: String(minimumDonationAmount),
+            },
+          ],
+        },
+      });
 
+      if (!minDonationResponse.success) {
+        logger.warn("⚠️ Failed to create metafield definition", {
+          errors: metafieldResponse.errors,
+        });
+      } else {
+        logger.info("✅ Metafield definition created", {
+          id: metafieldResponse.definition?.id,
+          name: metafieldResponse.definition?.name,
+        });
+      }
       /* 5️⃣  Persist to MongoDB --------------------------------------------------- */
       const shopSession = await SessionModel.findOne({ shop: shopDomain });
       if (!shopSession) {
@@ -148,10 +203,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
           variantId,
           sku: sku ?? null,
           description,
-          price: body.price ?? 10,
+          price: 5,
           goalAmount: goalAmount,
           shop: shopDomain,
-          minimumDonationAmount: body.minDonation ?? null,
+          minimumDonationAmount: body.minimumDonationAmount,
+          status: status,
         });
         logger.info(`Product saved to database : ${JSON.stringify(savedProduct)}`, { shop: shopDomain });
       } catch (err) {

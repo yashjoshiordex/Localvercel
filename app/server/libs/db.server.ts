@@ -1,6 +1,7 @@
+import { env } from "env.server";
 import mongoose from "mongoose";
 
-const MONGODB_URI:string = process.env.DATABASE_URL!;
+const MONGODB_URI:string = env.DATABASE_URL!;
 const MONGODB_DB_NAME = "Donate-Me";
 
 export const connectToDatabase = async () => {

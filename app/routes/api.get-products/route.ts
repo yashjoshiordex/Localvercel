@@ -60,7 +60,7 @@ export async function loader({ request }: { request: Request }) {
     }
 
     // Validate status parameter if provided
-    if (statusParam && !["Active", "Archived"].includes(statusParam)) {
+    if (statusParam && !["ACTIVE", "DRAFT"].includes(statusParam)) {
       logger.error("Invalid status parameter", { statusParam });
       return new Response(
         JSON.stringify({
@@ -81,8 +81,7 @@ export async function loader({ request }: { request: Request }) {
     logger.error("Unexpected error in products API", { error: err });
     return new Response(
       JSON.stringify({
-        error: "Internal server error",
-        debug: process.env.NODE_ENV === 'development' ? err.message : undefined
+        error: "Internal server error"
       }),
       { status: 500, headers: { "Content-Type": "application/json" } }
     );
