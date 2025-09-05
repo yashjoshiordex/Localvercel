@@ -474,10 +474,12 @@
                   id="donation-amount"
                   class="donation-amount-input"
                   min="1"
-                  step="1"
+                  step="any"
                   value="{{ block.settings.default_amount }}"
                   placeholder="Enter amount"
                   required
+                  pattern="\d*"
+                  inputmode="decimal"
                 >
             </div>
           {% else %}
@@ -489,10 +491,12 @@
                   id="donation-amount-direct"
                   class="donation-amount-input"
                   min="1"
-                  step="1"
+                  step="any"
                   value="{{ block.settings.default_amount }}"
                   placeholder="Enter amount"
                   required
+                  pattern="\d*"
+                  inputmode="decimal"
                 >
             </div>
           {% endif %}
@@ -669,7 +673,7 @@
       "id": "remove_branding",
       "label": "Remove Branding",
       "default": false,
-      "info": "Remove 'Powered by DonateMe' branding (requires premium plan)"
+      "info": "Remove 'Powered by DonateMe' branding (requires Gold plan)"
     }
   ]
 }

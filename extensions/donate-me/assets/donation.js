@@ -305,4 +305,35 @@ document.addEventListener("DOMContentLoaded", () => {
     e.stopPropagation(); // Stop event bubbling
     await handleDonation(e.target);
   });
+
+  function sanitizeNumericInput(e) {
+    // Remove all except digits and one decimal point
+    let value = e.target.value.replace(/[^0-9.]/g, '');
+    // Only allow one decimal point
+    const parts = value.split('.');
+    if (parts.length > 2) {
+      value = parts[0] + '.' + parts.slice(1).join('');
+    }
+    e.target.value = value;
+  }
+
+  // Prevent typing of +, -, e, E, etc.
+  function blockInvalidKeys(e) {
+    if (
+      ['e', 'E', '+', '-', ','].includes(e.key)
+    ) {
+      e.preventDefault();
+    }
+  }
+
+  const donationAmount = document.getElementById('donation-amount');
+  const donationAmountDirect = document.getElementById('donation-amount-direct');
+  if (donationAmount) {
+    donationAmount.addEventListener('input', sanitizeNumericInput);
+    donationAmount.addEventListener('keydown', blockInvalidKeys);
+  }
+  if (donationAmountDirect) {
+    donationAmountDirect.addEventListener('input', sanitizeNumericInput);
+    donationAmountDirect.addEventListener('keydown', blockInvalidKeys);
+  }
 });
